@@ -1,0 +1,50 @@
+workflows:
+  android-release:
+    name: PeerSitter — Android release
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      groups:
+        - google_play # provides GCLOUD_SERVICE_ACCOUNT_CREDENTIALS — set up in Codemagic's
+          # dashboard under this app's Environment variables, pasting the Play Console
+          # service account JSON (see docs/PLAY_STORE_DEPLOYMENT.md §7)
+      android_signing:
+        - peersitter_keystore # keystore reference name — upload the keystore from
+          # git@gitlab.com:boring-development-team/utils/android_keys.git under this
+          # app's Code signing identities in the Codemagic dashboard, naming it exactly
+          # `peersitter_keystore` (or update this line to match whatever name you pick).
+          # Codemagic injects CM_KEYSTORE_PATH/CM_KEYSTORE_PASSWORD/CM_KEY_ALIAS/CM_KEY_PASSWORD
+          # from this at build time — read by apps/mobile/android/app/build.gradle.
+      node: 22
+      java: 21
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "android-v*"
+          include: true
+    scripts:
+      - name: Install root workspace dependencies
+        script: npm install
+      - name: Build web app
+        script: npm --prefix apps/web run build
+      - name: Capacitor sync (Android)
+        script: |
+          cd apps/mobile
+          npx cap sync android
+      - name: Build signed release AAB
+        script: |
+          cd apps/mobile/android
+          ./gradlew bundleRelease
+    artifacts:
+      - apps/mobile/android/app/build/outputs/**/*.aab
+      - apps/mobile/android/app/build/outputs/**/mapping.txt
+    publishing:
+      # Build email notifications go to whatever address Codemagic has on file for this
+      # account by default — add an explicit `email.recipients` block here only if you
+      # want notifications sent somewhere else. Deliberately not hardcoded in this public
+      # repo.
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal # promote to production manually in Play Console once tested
+        submit_as_draft: true

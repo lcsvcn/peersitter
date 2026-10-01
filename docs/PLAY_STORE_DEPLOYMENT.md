@@ -22,14 +22,35 @@ iOS/AltStore deployment is a separate, unrelated track — not covered here.
 - Privacy Policy and Terms of Use are live, public, and ready to paste
   into Play Console (see §1).
 - Codemagic MCP tools are already connected in this environment
-  (`mcp__codemagic__*` — list_devices-equivalent is `list_applications`,
-  plus `start_build`, `get_builds`, `get_build_status`, etc.). Source:
+  (`mcp__codemagic__*` — `get_all_applications`, `start_build`,
+  `get_builds`, `get_build_status`, `get_build_step_log`, etc.). Source:
   https://github.com/stefanoamorelli/codemagic-mcp
+- **The repo is registered in Codemagic**: app `peersitter`, id
+  `6abe835187354fde5a07a2cc`, `settingsSource: "file"` (meaning it reads
+  `codemagic.yaml` from the repo, not the UI workflow editor — the
+  auto-created default UI workflow is a generic Flutter template and is
+  irrelevant/superseded now that the yaml file exists).
+- **`codemagic.yaml` exists at the repo root**, defining an
+  `android-release` workflow: builds the web app, `cap sync`s Android,
+  builds a signed `bundleRelease` AAB, and publishes it to Play Console's
+  **internal** track as a draft. It's gated on pushing a git tag matching
+  `android-v*` (not on every commit) — see §7 for exactly how to trigger
+  it.
+- **`apps/mobile/android/app/build.gradle` has a conditional
+  `signingConfigs.release`** that reads
+  `CM_KEYSTORE_PATH`/`CM_KEYSTORE_PASSWORD`/`CM_KEY_ALIAS`/`CM_KEY_PASSWORD`
+  — the exact env vars Codemagic auto-injects when a workflow's
+  `android_signing` references an uploaded keystore. Local
+  `assembleDebug` is unaffected (those vars are unset locally, so
+  `release` just stays unsigned for local builds, same as before).
 
 **Not done / blocking a real store submission:**
-1. **No release signing is configured.** `build.gradle`'s `release`
-   buildType has no `signingConfig` — `./gradlew bundleRelease` today
-   produces an **unsigned** AAB. See §6 — this is the critical path item.
+1. **No keystore uploaded to Codemagic yet.** The yaml references a
+   keystore reference named `peersitter_keystore` that doesn't exist in
+   Codemagic until someone uploads it. See §6 — this is now the single
+   critical path item, and it's a **[HUMAN]** step (needs the GitLab
+   `android_keys` repo access + the Codemagic dashboard, neither of
+   which any agent has).
 2. **No custom app icon.** The app currently ships Capacitor's generic
    default icon/splash assets (`apps/mobile/android/app/src/main/res/mipmap-*/ic_launcher*.png`),
    not real PeerSitter branding. Play Console requires a 512×512 icon
@@ -42,10 +63,13 @@ iOS/AltStore deployment is a separate, unrelated track — not covered here.
    `apps/mobile/maestro/smoke-*.yaml`) — those are usable raw material,
    but should be retaken deliberately for store-listing quality rather
    than reused as-is from a test run.
-4. **No `codemagic.yaml`** in the repo yet — Codemagic needs this to
-   know how to build/sign/publish. Template in §7.
+4. **The Play service account credentials aren't in Codemagic yet.** The
+   yaml references a `google_play` environment variable group with
+   `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` — see §7.
 5. **The actual Play Console app has not been created yet** — §3 is the
-   literal form to fill in.
+   literal form to fill in. (The `google_play` publishing step in
+   `codemagic.yaml` will fail until this exists, since there's nothing
+   on Play's side to publish to.)
 
 ---
 
@@ -63,6 +87,10 @@ iOS/AltStore deployment is a separate, unrelated track — not covered here.
 | Terms of Use URL | https://lcsvcn.github.io/peersitter/terms.html |
 | Signing keys location | `git@gitlab.com:boring-development-team/utils/android_keys.git` — private, SSH-only. **Not yet accessed by any agent.** Whoever executes §6 needs SSH access to this repo plus the keystore password/alias/key password (not stored anywhere in this repo). |
 | CI/CD | Codemagic (https://codemagic.io/apps), MCP already connected this session |
+| Codemagic app | `peersitter`, id `6abe835187354fde5a07a2cc` — https://codemagic.io/app/6abe835187354fde5a07a2cc |
+| Codemagic keystore reference name | `peersitter_keystore` (referenced in `codemagic.yaml`'s `android_signing` — must be uploaded with exactly this name, or update the yaml to match whatever name is actually used) |
+| Codemagic env var group for Play publishing | `google_play`, must contain `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` |
+| Release trigger | push a git tag matching `android-v*` (e.g. `android-v1.0.0`) — see §7 |
 | Google Play Console | https://play.google.com/console |
 
 **Build commands** (from `apps/mobile/README.md`):
@@ -169,117 +197,88 @@ email, consistent with the privacy policy's own contact method.
 
 ---
 
-## 6. Release signing — the critical path item
+## 6. Release signing — the one remaining blocker
 
-**Current state:** `apps/mobile/android/app/build.gradle`'s `release`
-buildType block has no `signingConfig`:
-```gradle
-buildTypes {
-    release {
-        minifyEnabled false
-        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-    }
-}
-```
+This is now **the only step standing between a tagged commit and a
+published internal-track release.** Everything else (the yaml, the
+Gradle config, the Codemagic app registration) is already done.
 
-**What needs to happen**, once the keystore is retrieved from
-`git@gitlab.com:boring-development-team/utils/android_keys.git`
-**[HUMAN — requires the GitLab SSH access and keystore secrets]**:
+**Current state:**
+- `apps/mobile/android/app/build.gradle` has a conditional
+  `signingConfigs.release` that reads
+  `CM_KEYSTORE_PATH`/`CM_KEYSTORE_PASSWORD`/`CM_KEY_ALIAS`/`CM_KEY_PASSWORD`
+  — these are the exact env var names Codemagic auto-populates when a
+  workflow references an uploaded keystore via `android_signing`.
+- `codemagic.yaml`'s `android-release` workflow references
+  `android_signing: [peersitter_keystore]` — but no keystore named
+  `peersitter_keystore` has been uploaded to Codemagic yet, so this
+  reference currently resolves to nothing and the build will fail at the
+  `bundleRelease` step.
 
-1. Place the keystore file somewhere **outside** the public `peersitter`
-   repo (e.g. reference it via Codemagic's encrypted file storage, not a
-   path committed to git — this repo is public).
-2. Add a `keystore.properties`-style approach, kept out of git via
-   `.gitignore` (already present at the repo root as a pattern-matchable
-   location — add `apps/mobile/android/keystore.properties` to
-   `.gitignore` before creating it), or — **preferred for CI** — inject
-   signing values as Codemagic environment variables instead of a
-   committed file at all, since this repo is public and must never
-   contain the keystore or its passwords.
-3. Add a `signingConfigs` block to `build.gradle` referencing env vars
-   (works both locally via exported shell vars and in Codemagic):
-   ```gradle
-   android {
-       ...
-       signingConfigs {
-           release {
-               storeFile file(System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore")
-               storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
-               keyAlias System.getenv("ANDROID_KEY_ALIAS")
-               keyPassword System.getenv("ANDROID_KEY_PASSWORD")
-           }
-       }
-       buildTypes {
-           release {
-               signingConfig signingConfigs.release
-               minifyEnabled false
-               proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-           }
-       }
-   }
-   ```
-4. **Recommended: enroll in [Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756)**
-   (Play Console will prompt for this on first release) — Google then
-   manages the final signing key, and the keystore from the GitLab repo
-   only needs to be an **upload key**, which is lower-stakes to rotate
-   if it's ever compromised than the app's actual signing key.
+**What needs to happen — [HUMAN, requires GitLab SSH access +
+Codemagic dashboard access, neither available to any agent]:**
+
+1. Pull the keystore from `git@gitlab.com:boring-development-team/utils/android_keys.git`
+   (need its password + key alias + key password too — not stored
+   anywhere in this repo, by design, since this repo is public).
+2. In the Codemagic dashboard → this app
+   (https://codemagic.io/app/6abe835187354fde5a07a2cc) → **Code signing
+   identities** → **Android keystores** → upload it, naming the
+   reference **exactly** `peersitter_keystore` (or, if you name it
+   something else, update the single line in `codemagic.yaml` that says
+   `- peersitter_keystore` to match).
+3. **Recommended: enroll in [Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756)**
+   (Play Console prompts for this on first release) — Google then
+   manages the actual signing key, and the keystore uploaded to
+   Codemagic only needs to be an **upload key**, which is lower-stakes
+   to rotate if it's ever compromised than the app's real signing key.
+
+Once this is done, the `android-release` workflow is fully live — no
+further yaml or Gradle changes needed.
 
 ---
 
-## 7. Codemagic CI/CD setup
+## 7. Codemagic CI/CD — what's already done, what's left
 
-1. **[HUMAN]** Connect the `lcsvcn/peersitter` GitHub repo in the
-   Codemagic dashboard (https://codemagic.io/apps) — OAuth step, can't
-   be scripted from here.
-2. **[HUMAN]** In Play Console → **Setup → API access**, create/link a
-   Google Cloud service account, download its JSON key, and grant it
-   **Release manager** permission in Play Console. Store that JSON as a
-   Codemagic **encrypted environment variable** (e.g.
-   `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`) — never commit it to the repo.
-3. Add the keystore (from the GitLab `android_keys` repo) and its
-   password/alias/key-password to Codemagic as encrypted environment
-   variables or via Codemagic's encrypted file storage — again, never
-   into this public repo.
-4. Add a `codemagic.yaml` at the repo root. Starting template (fill in
-   the env var group name used in step 2/3, and confirm paths once a
-   real workflow is tested):
-   ```yaml
-   workflows:
-     android-release:
-       name: PeerSitter — Android release
-       max_build_duration: 30
-       environment:
-         groups:
-           - android_signing        # keystore + passwords (set up in Codemagic UI)
-           - google_play             # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-         node: 22
-         java: 21
-       scripts:
-         - name: Install root workspace deps
-           script: npm install
-         - name: Build web app
-           script: npm --prefix apps/web run build
-         - name: Capacitor sync
-           script: cd apps/mobile && npx cap sync android
-         - name: Build signed AAB
-           script: |
-             cd apps/mobile/android
-             ./gradlew bundleRelease
-       artifacts:
-         - apps/mobile/android/app/build/outputs/**/*.aab
-       publishing:
-         google_play:
-           credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-           track: internal   # promote to production manually after testing
-   ```
-   This template assumes §6's `signingConfigs` block reads from env vars
-   that the `android_signing` group provides
-   (`ANDROID_KEYSTORE_PATH`/`ANDROID_KEYSTORE_PASSWORD`/`ANDROID_KEY_ALIAS`/`ANDROID_KEY_PASSWORD`)
-   — adjust names to match whatever Codemagic's UI generates.
-5. The `mcp__codemagic__*` tools already connected in this environment
-   (`start_build`, `get_build_status`, `get_builds`, `get_build_step_log`,
-   etc.) can trigger and monitor builds once the workflow above exists
-   and the app is registered with `mcp__codemagic__add_application`.
+**Already done (no further action needed for these):**
+- The repo is registered in Codemagic as app `peersitter`
+  (id `6abe835187354fde5a07a2cc`), added via
+  `mcp__codemagic__add_application` pointed at
+  `https://github.com/lcsvcn/peersitter.git`.
+- `codemagic.yaml` exists at the repo root defining the
+  `android-release` workflow (install deps → build web app → `cap sync`
+  → `gradlew bundleRelease` → publish to Play's `internal` track as a
+  draft). It only runs on a pushed git tag matching `android-v*`, not on
+  every commit — see the trigger command below.
+- `build.gradle` is wired to consume Codemagic's injected signing env
+  vars (§6).
+
+**Still needed — both [HUMAN]:**
+1. **Upload the keystore** — §6, the one true blocker left.
+2. **Add the `google_play` environment variable group** in the Codemagic
+   dashboard for this app, containing `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`
+   (the full JSON key of a Google Cloud service account that's been
+   granted **Release manager** permission in Play Console → Setup → API
+   access). Without this, the `publishing.google_play` step in
+   `codemagic.yaml` has nothing to authenticate with.
+
+**How to trigger a release build once both of the above are done:**
+```sh
+git tag android-v1.0.0
+git push origin android-v1.0.0
+```
+Or trigger it directly via the already-connected MCP tools without
+waiting for a tag push:
+```
+mcp__codemagic__start_build(app_id="6abe835187354fde5a07a2cc", workflow_id="android-release", branch="main")
+```
+(Exact `start_build` argument names should be confirmed against its
+current schema when actually calling it — fetch it via
+`ToolSearch("select:mcp__codemagic__start_build")` first, same as was
+done for `add_application` in this session.)
+
+Then monitor with `mcp__codemagic__get_build_status` /
+`get_build_step_log` using the build ID the start call returns.
 
 ---
 
