@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSCameraUsageDescription</key>
+  <string>PeerSitter needs camera access to stream video to a paired Viewer or to scan a pairing QR code.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>PeerSitter needs microphone access to stream audio to a paired Viewer.</string>
+</dict>
+</plist>

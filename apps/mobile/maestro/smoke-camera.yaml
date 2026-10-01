@@ -1,0 +1,36 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Camera role smoke test"
+---
+# Note: WebView accessibility merges each card's title + description into a
+# single accessible label, so cards are matched by regex rather than the
+# visible title text alone. `stopApp` before `launchApp` is required: this
+# is a single-page app with in-memory navigation state (no router), and
+# without a hard kill the WKWebView process can survive `launchApp`'s
+# clearState, leaving the app on whatever screen a previous run left it on.
+- stopApp
+- launchApp:
+    clearState: true
+    permissions:
+      camera: allow
+      microphone: allow
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- assertVisible: ".*Be a Camera.*"
+- takeScreenshot: "01-home"
+
+- tapOn: ".*Be a Camera.*"
+- assertVisible: "Camera"
+- extendedWaitUntil:
+    visible: ".*Record automatically when this camera sees movement.*"
+    timeout: 10000
+- takeScreenshot: "02-camera"
+
+# retryTapIfNoChange must be false here: the camera screen's live motion
+# timer keeps the hierarchy constantly changing, which confuses Maestro's
+# default no-change-retry heuristic into never registering the tap.
+- tapOn:
+    text: "← Back"
+    retryTapIfNoChange: false
+- assertVisible: "PeerSitter"

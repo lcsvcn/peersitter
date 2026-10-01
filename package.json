@@ -1,0 +1,17 @@
+{
+  "name": "peersitter",
+  "private": true,
+  "description": "Open-source, peer-to-peer camera monitoring app. No cloud, no server storage, no cost.",
+  "workspaces": [
+    "signaling-server",
+    "packages/*",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:signal": "npm run dev --workspace=signaling-server",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:signal": "npm run build --workspace=signaling-server"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,17 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Gallery smoke test"
+---
+- stopApp
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- assertVisible: ".*Recordings.*"
+- takeScreenshot: "01-home"
+
+- tapOn: ".*Recordings.*"
+- assertVisible: "Recordings"
+- assertVisible: "No clips yet — motion-triggered recording saves here."
+- takeScreenshot: "02-gallery-empty"

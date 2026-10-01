@@ -1,0 +1,14 @@
+{
+  "name": "@peersitter/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tauri shell that packages apps/web as a native desktop app (Windows/macOS/Linux).",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

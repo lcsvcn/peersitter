@@ -1,0 +1,33 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+
+# Native projects (ios/, android/, src-tauri/) ARE checked in — they've been
+# generated and fixed to build out of the box. Only their build output and
+# machine-specific files are ignored.
+apps/desktop/src-tauri/target/
+
+apps/mobile/ios/App/Pods/
+apps/mobile/ios/App/build/
+apps/mobile/ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+apps/mobile/ios/App/App.xcodeproj/xcuserdata/
+
+apps/mobile/android/local.properties
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+apps/mobile/android/capacitor-cordova-android-plugins/build/
+apps/mobile/android/.idea/
+
+.DS_Store
+*.log
+.env
+.env.local
+
+apps/web/e2e/screenshot-*.png
+
+# Maestro CLI writes takeScreenshot output relative to the invocation cwd
+/*.png
+

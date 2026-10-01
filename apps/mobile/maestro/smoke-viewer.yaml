@@ -1,0 +1,31 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Viewer role smoke test"
+---
+# Note: WebView accessibility merges each card's title + description into a
+# single accessible label, so cards are matched by regex rather than the
+# visible title text alone. `stopApp` before `launchApp` is required: this
+# is a single-page app with in-memory navigation state (no router), and
+# without a hard kill the WKWebView process can survive `launchApp`'s
+# clearState, leaving the app on whatever screen a previous run left it on.
+- stopApp
+- launchApp:
+    clearState: true
+    permissions:
+      camera: allow
+      microphone: allow
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- assertVisible: ".*Be a Viewer.*"
+- takeScreenshot: "01-home"
+
+- tapOn: ".*Be a Viewer.*"
+- assertVisible: "Viewer"
+- takeScreenshot: "02-viewer"
+
+# No camera scanner needed for pairing verification — use the paste-code
+# fallback, which is also how the desktop/no-camera pairing path is tested.
+- tapOn: ".*[Pp]aste the code instead.*"
+- assertVisible: "Connect"
+- takeScreenshot: "03-viewer-paste-fallback"
