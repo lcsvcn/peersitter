@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — PeerSitter</title>
+<style>
+  :root { color-scheme: dark light; --bg:#0f1115; --fg:#e7e9ee; --muted:#8b90a0; --accent:#4f8cff; --card:#181b22; --border:#262b36; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.6; }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 20px 64px; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.6rem; margin-bottom: 4px; }
+  .updated { color: var(--muted); font-size: 0.85rem; margin-bottom: 32px; }
+  h2 { font-size: 1.1rem; margin-top: 2em; border-top: 1px solid var(--border); padding-top: 1.2em; }
+  p, li { color: #cdd1db; }
+  .nav { font-size: 0.85rem; margin-bottom: 24px; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--accent); }
+  code { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<main>
+  <div class="nav"><a href="./">PeerSitter</a> · <a href="https://github.com/lcsvcn/peersitter">Source on GitHub</a> · <a href="./terms.html">Terms of Use</a></div>
+
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: October 1, 2026</p>
+
+  <p>
+    PeerSitter is built so there's as little as possible for a privacy policy to say: your
+    video, audio, and recordings never reach any server we operate. This page exists because
+    app stores require one — here are the specifics.
+  </p>
+
+  <h2>What PeerSitter does</h2>
+  <p>
+    PeerSitter connects a "Camera" device and a "Viewer" device directly to each other over an
+    encrypted, peer-to-peer connection (WebRTC). Audio and video stream straight between those
+    two devices. Recordings triggered by on-device motion detection are saved only in storage
+    local to the device that made them.
+  </p>
+
+  <h2>Data we collect</h2>
+  <p>
+    We do not operate any server that stores, logs, or has access to your camera feed,
+    microphone audio, or recordings. PeerSitter contains no analytics SDK, no crash reporter,
+    no advertising SDK, and no account or login system — there is nothing tied to your identity
+    for us to collect in the first place.
+  </p>
+
+  <h2>The signaling server</h2>
+  <p>
+    To introduce two devices to each other, PeerSitter briefly uses a small "signaling" relay to
+    exchange connection-setup information: a randomly generated room ID and WebRTC connection
+    parameters (SDP/ICE). This relay never receives your audio, video, or recordings, and the
+    connection it helps establish is verified end-to-end so it can't silently intercept it either
+    — see the <a href="https://github.com/lcsvcn/peersitter/blob/main/docs/ARCHITECTURE.md">architecture doc</a>
+    for exactly how. PeerSitter is self-hostable: if you run your own signaling server, you (or
+    whoever operates it) control that infrastructure and its logs, not us.
+  </p>
+
+  <h2>Camera, microphone, and storage permissions</h2>
+  <p>
+    PeerSitter requests camera and microphone access to capture and stream video/audio, and
+    local storage access to save motion-triggered recordings on your own device. These
+    permissions are used solely for the app's core functionality and nothing captured through
+    them is transmitted to us.
+  </p>
+
+  <h2>Recordings</h2>
+  <p>
+    Recordings are stored only on the device that captured or received them, in app-private
+    storage. Nothing uploads automatically. You can play, export, or delete any recording from
+    the in-app Gallery, and the oldest recordings are deleted automatically once your chosen
+    local storage limit is reached.
+  </p>
+
+  <h2>Children's privacy</h2>
+  <p>
+    PeerSitter is not directed at children, and we do not knowingly collect data from anyone —
+    children or adults — because the app does not collect data at all.
+  </p>
+
+  <h2>Open source</h2>
+  <p>
+    PeerSitter's full source code — including this policy's source file — is public at
+    <a href="https://github.com/lcsvcn/peersitter">github.com/lcsvcn/peersitter</a>. You don't
+    have to take our word for any of the above; you're welcome to read the code yourself.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    If this policy changes, we'll update this page and the date above. The full history of any
+    changes is visible in the repository's git log.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about this policy? Open an issue at
+    <a href="https://github.com/lcsvcn/peersitter/issues">github.com/lcsvcn/peersitter/issues</a>.
+  </p>
+</main>
+</body>
+</html>
