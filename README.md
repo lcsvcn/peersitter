@@ -143,3 +143,8 @@ starting architecture, not a guarantee, until one happens.
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
+
+## Legal
+
+- [Privacy Policy](https://lcsvcn.github.io/peersitter/privacy.html)
+- [Terms of Use](https://lcsvcn.github.io/peersitter/terms.html)
