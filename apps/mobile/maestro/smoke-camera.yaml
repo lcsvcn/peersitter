@@ -22,11 +22,23 @@ name: "PeerSitter: Camera role smoke test"
 
 - tapOn: ".*Be a Camera.*"
 - assertVisible: "Camera"
-- extendedWaitUntil:
-    visible: ".*Record automatically when this camera sees movement.*"
+# The QR code section pushes the motion-recording controls below the
+# fold on smaller viewports — scroll rather than assertVisible directly,
+# since off-screen content isn't present in the accessibility snapshot
+# assertVisible/extendedWaitUntil read from (confirmed via inspect_screen
+# reporting "2 pages" of vertical scroll on this screen).
+- scrollUntilVisible:
+    element: ".*Record automatically when this camera sees movement.*"
+    direction: DOWN
     timeout: 10000
 - takeScreenshot: "02-camera"
 
+# Scroll back up — the previous step scrolled down to reach the motion
+# controls, which pushes "← Back" at the top off-screen.
+- scrollUntilVisible:
+    element: "← Back"
+    direction: UP
+    timeout: 10000
 # retryTapIfNoChange must be false here: the camera screen's live motion
 # timer keeps the hierarchy constantly changing, which confuses Maestro's
 # default no-change-retry heuristic into never registering the tap.

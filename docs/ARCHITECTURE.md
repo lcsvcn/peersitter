@@ -60,6 +60,52 @@ fingerprint check defeats this:
 This is the same pattern Signal/WhatsApp-style "safety numbers" use, just
 automated instead of requiring a manual compare.
 
+## The signaling URL must be `wss://`, not `ws://`, for Android
+
+Discovered via real device-to-device testing (see
+`apps/mobile/maestro/README.md`): **Android's Capacitor WebView enforces
+strict HTTPS mixed-content blocking on its app origin.** Capacitor serves
+the app over an `https://` origin on Android, and browsers refuse to open
+a plain, unencrypted `ws://` connection from an HTTPS page to anywhere
+*except* `localhost`/`127.0.0.1` (which are specifically exempted as
+"potentially trustworthy" per the mixed-content spec, since they can't be
+intercepted over a network). Point an Android build's signaling URL at a
+real LAN IP or hostname over plain `ws://` and `new WebSocket(...)` throws
+immediately client-side:
+
+```
+Failed to construct 'WebSocket': An insecure WebSocket connection may not
+be initiated from a page loaded over HTTPS.
+```
+
+The app handles this gracefully — it surfaces as an ordinary `error`
+status rather than crashing — but the connection never happens.
+
+**iOS does not enforce this as strictly**: a WKWebView-based Capacitor
+build connects to a plain `ws://<lan-ip>` signaling server without
+complaint, even to non-localhost addresses. This is a genuine
+cross-platform inconsistency worth knowing about, not a testing artifact.
+
+**What this means in practice:**
+- The signaling server itself doesn't need to be the one terminating TLS
+  — any `wss://` endpoint works, including one sitting behind a reverse
+  proxy or a platform's built-in HTTPS.
+- The "self-host for $0" platforms this README already recommends
+  (Render, Fly.io, Railway) all auto-provision TLS on their public URLs,
+  so following that advice as written already produces a working
+  `wss://` endpoint — **this gap doesn't bite the documented cloud
+  deployment path.**
+- It **does** bite the other documented option — "a spare Raspberry Pi on
+  your own network" — if that Pi serves plain `ws://` on its bare LAN IP,
+  which it will unless you put TLS in front of it yourself (e.g.
+  [Caddy](https://caddyserver.com/) with a self-signed or
+  [Tailscale](https://tailscale.com/kb/1153/enabling-https)-issued cert).
+  Android devices on that network simply won't be able to pair; iOS
+  devices will.
+- Only `localhost`/`127.0.0.1` are exempt — the Android emulator's
+  host-loopback alias `10.0.2.2` is **not** covered by the exemption, so
+  it hits this same error too.
+
 ## NAT traversal: STUN and (optional) TURN
 
 Pure P2P can't always punch through NAT/firewalls on its own:

@@ -1,0 +1,39 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Viewer role falls back gracefully when permission is denied"
+---
+# Viewer.tsx deliberately swallows a getUserMedia rejection (no camera to
+# scan a QR code with isn't fatal — the paste-code fallback still works).
+# This confirms that degrade-gracefully design actually holds at runtime:
+# the screen should stay on "scanning" status with the fallback usable,
+# not show an error or break.
+#
+# Run with camera permission already revoked at the OS level first (`adb
+# shell pm revoke dev.peersitter.app android.permission.CAMERA`) — see
+# permission-denied-camera.yaml for why launchApp's own `permissions`
+# block doesn't suppress the native dialog, and why the dialog tap below
+# is optional (Android/Chrome skip re-prompting once already denied once).
+# Viewer only ever requests video, not audio, so only one dialog appears.
+- stopApp
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- tapOn: ".*Be a Viewer.*"
+- assertVisible: "Viewer"
+
+- extendedWaitUntil:
+    visible: "Don’t allow"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "Don’t allow"
+    optional: true
+
+- assertVisible: "scanning"
+- takeScreenshot: "01-viewer-permission-denied-still-scanning"
+
+- tapOn: ".*[Pp]aste the code instead.*"
+- assertVisible: "Connect"
+- takeScreenshot: "02-viewer-paste-fallback-still-works"

@@ -1,0 +1,59 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Camera role degrades gracefully when permission is denied"
+---
+# Confirms denying camera/mic doesn't crash the app — it should surface the
+# browser's own rejection as a visible error state, not a blank screen or
+# an unhandled exception.
+#
+# Note: launchApp's `permissions: {camera: deny}` does NOT suppress the
+# native Android runtime dialog — Capacitor's WebView triggers its own
+# per-request permission prompt regardless of any pre-set app-level grant
+# state. Run this with camera/mic already revoked at the OS level first
+# (`adb shell pm revoke dev.peersitter.app android.permission.CAMERA` /
+# `...RECORD_AUDIO`) — on a previously-untouched install Android shows a
+# live dialog here (tapped below); once a permission has already been
+# explicitly denied once, Android/Chrome skip re-prompting and the app
+# goes straight to the error state, which is why the dialog taps below are
+# optional rather than required.
+- stopApp
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- tapOn: ".*Be a Camera.*"
+- assertVisible: "Camera"
+
+- extendedWaitUntil:
+    visible: "Don’t allow"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "Don’t allow"
+    optional: true
+- extendedWaitUntil:
+    visible: "Don’t allow"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "Don’t allow"
+    optional: true
+
+# Asserting on the status value ("error") rather than the error-message
+# text itself ("Permission denied") deliberately: that <p class="error">
+# element is visually rendered (confirmed via screenshot) but, on Android,
+# is reproducibly absent from the WebView's accessibility-tree snapshot
+# that assertVisible/inspect_screen read from — a WebView accessibility-
+# bridge gap, not an app bug or flow flakiness. assertVisible can't see
+# that specific element; screenshots remain the way to verify its text.
+- extendedWaitUntil:
+    visible: "error"
+    timeout: 10000
+- takeScreenshot: "01-camera-permission-denied"
+
+# The app should still be fully navigable afterwards — not stuck.
+- tapOn:
+    text: "← Back"
+    retryTapIfNoChange: false
+- assertVisible: "PeerSitter"

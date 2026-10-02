@@ -86,6 +86,15 @@ the "Advanced: signaling server" field on the home screen, or
 only ever pushes a handful of small JSON messages per pairing, never
 media.
 
+**Use a `wss://` URL, not `ws://`, unless every device is on
+`localhost`.** Render/Fly.io/Railway give you `wss://` automatically, so
+this is a non-issue on those — but the Android app specifically refuses
+to open a plain `ws://` connection to anything other than
+`localhost`/`127.0.0.1` (a WebView mixed-content restriction; iOS doesn't
+enforce this). Self-hosting on bare LAN hardware like a Raspberry Pi
+needs TLS in front of it (e.g. Caddy) for Android devices to pair at
+all — see `docs/ARCHITECTURE.md`.
+
 ## Native apps
 
 `apps/web` is the only app codebase. `apps/mobile` (Capacitor → iOS +

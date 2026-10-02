@@ -1,0 +1,35 @@
+appId: dev.peersitter.app
+name: "PeerSitter: Settings persist across app relaunch"
+---
+# Settings are saved to localStorage inside the WebView (see
+# apps/web/src/settings.ts). This confirms that actually survives a full
+# native process kill + relaunch, not just a React re-render — the native
+# WebView's storage backend is a different code path than a desktop browser.
+- stopApp
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- tapOn: ".*Settings.*"
+- assertVisible: "ws://localhost:8787"
+- tapOn: "ws://localhost:8787"
+- eraseText
+- inputText: "wss://relay.example.com"
+# hideKeyboard is flaky on iOS (Maestro's own docs note this) — tap a
+# neutral nearby label instead to shift focus away from the text field,
+# which dismisses the keyboard as a side effect on both platforms.
+- tapOn: ".*Motion sensitivity.*"
+- takeScreenshot: "01-settings-changed"
+
+- stopApp
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 10000
+- tapOn: ".*Settings.*"
+- assertVisible: "wss://relay.example.com"
+- takeScreenshot: "02-settings-persisted-after-relaunch"
