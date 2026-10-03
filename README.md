@@ -76,6 +76,17 @@ npm run build --workspace=apps/web   # once
 npm run test:e2e --workspace=apps/web
 ```
 
+### e2e framework (deterministic + agentic)
+
+`apps/web/tests/*.e2e.ts` use [e2e](https://tester.army/e2e): fast
+deterministic checks of the home and viewer screens, plus an agentic test
+(`agent.act` / `agent.assert`) that runs only when `AI_GATEWAY_API_KEY` is
+set. The runner starts the Vite dev server itself.
+
+```sh
+npm run test:e2e:agentic --workspace=apps/web
+```
+
 ## Self-hosting the signaling server for $0
 
 It's a stateless Node process (`signaling-server/`) — deploy it free on
