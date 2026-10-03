@@ -113,6 +113,16 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
     try {
       const signaling = new SignalingClient(payload.signalingUrl);
       signalingRef.current = signaling;
+      signaling.onError = (message) => {
+        setError(
+          message === "room-full"
+            ? "This camera already has a viewer connected."
+            : message === "room-not-found"
+              ? "That camera isn't available anymore. Ask it to show a new code."
+              : message,
+        );
+        setStatus("error");
+      };
       await signaling.joinRoom(payload.roomId);
 
       const link = new PeerLink({
