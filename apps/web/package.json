@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test:e2e": "node e2e/smoke.mjs",
+    "test:e2e:multi": "node e2e/multi.mjs",
     "test:e2e:agentic": "e2e run"
   },
   "dependencies": {
