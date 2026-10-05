@@ -15,6 +15,8 @@ export interface PairingPayload {
    * the connection.
    */
   fingerprint: string;
+  /** Optional human-friendly camera name ("Nursery") shown on the viewer's tile. */
+  name?: string;
 }
 
 export type Role = "camera" | "viewer";

@@ -22,8 +22,10 @@ export function buildPairingPayload(opts: {
   signalingUrl: string;
   roomId: string;
   fingerprint: string;
+  name?: string;
 }): PairingPayload {
-  return { v: 1, ...opts };
+  const { name, ...rest } = opts;
+  return { v: 1, ...rest, ...(name?.trim() ? { name: name.trim().slice(0, 40) } : {}) };
 }
 
 export function encodePairingPayload(payload: PairingPayload): string {

@@ -23,11 +23,11 @@ export default function Home({ settings, onSettingsChange, onChooseCamera, onCho
       <div className="card-row">
         <button className="card" onClick={onChooseCamera}>
           <span className="card-title">Be a Camera</span>
-          <span className="card-desc">Turn this device into a monitoring camera and generate a pairing QR code.</span>
+          <span className="card-desc">Turn this device into a monitoring camera. Several viewers can watch it at once.</span>
         </button>
         <button className="card" onClick={onChooseViewer}>
           <span className="card-title">Be a Viewer</span>
-          <span className="card-desc">Scan a Camera's QR code to watch its live, encrypted feed.</span>
+          <span className="card-desc">Scan Camera QR codes to watch one or many live, encrypted feeds at once.</span>
         </button>
       </div>
 
@@ -52,6 +52,21 @@ export default function Home({ settings, onSettingsChange, onChooseCamera, onCho
             value={settings.signalingUrl}
             onChange={(e) => onSettingsChange({ signalingUrl: e.target.value })}
             spellCheck={false}
+          />
+        </label>
+
+        <label className="field">
+          Camera name
+          <span className="field-hint">
+            Shown on each viewer's tile when this device is a Camera, so you can tell several cameras apart
+            (e.g. "Nursery", "Garage").
+          </span>
+          <input
+            type="text"
+            value={settings.cameraName}
+            maxLength={40}
+            placeholder="Camera"
+            onChange={(e) => onSettingsChange({ cameraName: e.target.value })}
           />
         </label>
 

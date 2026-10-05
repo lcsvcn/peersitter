@@ -1,4 +1,4 @@
-import { SignalingClient } from "./signalingClient";
+import type { SignalChannel } from "./signalingClient";
 import { fingerprintFromSdp } from "./pairing";
 import type { ConnectionEvents } from "./types";
 
@@ -21,12 +21,12 @@ const DEFAULT_ICE_SERVERS: IceServerConfig[] = [
  */
 export class PeerLink {
   readonly pc: RTCPeerConnection;
-  private signaling: SignalingClient;
+  private signaling: SignalChannel;
   private events: ConnectionEvents;
   dataChannel?: RTCDataChannel;
 
   constructor(opts: {
-    signaling: SignalingClient;
+    signaling: SignalChannel;
     certificate?: RTCCertificate;
     iceServers?: IceServerConfig[];
     events?: ConnectionEvents;

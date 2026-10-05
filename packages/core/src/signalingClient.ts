@@ -1,15 +1,26 @@
+/** One logical signaling conversation: either the whole socket (viewer side) or one viewer as seen by a camera. */
+export interface SignalChannel {
+  sendSignal(data: unknown): Promise<void>;
+  onSignal?: (data: unknown) => void;
+}
+
 /**
  * Thin wrapper around the signaling WebSocket. Carries only room
  * bootstrapping and opaque SDP/ICE payloads — never media.
  */
-export class SignalingClient {
+export class SignalingClient implements SignalChannel {
   private ws: WebSocket;
   private openPromise: Promise<void>;
+  private channels = new Map<string, PeerChannel>();
 
-  onPeerJoined?: () => void;
-  onPeerLeft?: (reason: string) => void;
+  /** Camera side: a viewer joined. `peerId` identifies it for per-viewer channels. */
+  onPeerJoined?: (peerId?: string) => void;
+  /** Camera side: `peerId` is the viewer that left. Viewer side: the camera went away (no peerId). */
+  onPeerLeft?: (reason: string, peerId?: string) => void;
   onSignal?: (data: unknown) => void;
   onError?: (message: string) => void;
+  /** The socket to the relay closed (server restart, network loss). */
+  onClose?: () => void;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
@@ -17,17 +28,20 @@ export class SignalingClient {
       this.ws.addEventListener("open", () => resolve(), { once: true });
       this.ws.addEventListener("error", () => reject(new Error("signaling-connect-failed")), { once: true });
     });
+    this.ws.addEventListener("close", () => this.onClose?.());
     this.ws.addEventListener("message", (ev) => {
       const msg = JSON.parse(ev.data);
       switch (msg.type) {
         case "peer-joined":
-          this.onPeerJoined?.();
+          this.onPeerJoined?.(msg.peerId);
           break;
         case "peer-left":
-          this.onPeerLeft?.(msg.reason ?? "unknown");
+          if (msg.peerId) this.channels.delete(msg.peerId);
+          this.onPeerLeft?.(msg.reason ?? "unknown", msg.peerId);
           break;
         case "signal":
-          this.onSignal?.(msg.data);
+          if (msg.from && this.channels.has(msg.from)) this.channels.get(msg.from)!.onSignal?.(msg.data);
+          else this.onSignal?.(msg.data);
           break;
         case "error":
           this.onError?.(msg.message);
@@ -61,11 +75,35 @@ export class SignalingClient {
     await this.send({ type: "join-room", roomId });
   }
 
-  async sendSignal(data: unknown) {
-    await this.send({ type: "signal", data });
+  async sendSignal(data: unknown, to?: string) {
+    await this.send(to ? { type: "signal", data, to } : { type: "signal", data });
+  }
+
+  /**
+   * Camera side: a channel that only talks to one viewer, so each viewer
+   * can have its own PeerLink over the same signaling socket.
+   */
+  channelFor(peerId: string): SignalChannel {
+    let channel = this.channels.get(peerId);
+    if (!channel) {
+      channel = new PeerChannel(this, peerId);
+      this.channels.set(peerId, channel);
+    }
+    return channel;
   }
 
   close() {
     this.ws.close();
+  }
+}
+
+class PeerChannel implements SignalChannel {
+  onSignal?: (data: unknown) => void;
+  constructor(
+    private client: SignalingClient,
+    private peerId: string,
+  ) {}
+  sendSignal(data: unknown) {
+    return this.client.sendSignal(data, this.peerId);
   }
 }

@@ -25,6 +25,7 @@ export default function App() {
     return (
       <Camera
         signalingUrl={settings.signalingUrl}
+        cameraName={settings.cameraName}
         storage={storage}
         motionSensitivity={settings.motionSensitivity}
         onBack={() => setScreen("home")}

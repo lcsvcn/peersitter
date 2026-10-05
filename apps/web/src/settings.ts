@@ -4,6 +4,8 @@ export interface Settings {
   maxStorageGB: number;
   /** 0-1: lower = trips on smaller movements. */
   motionSensitivity: number;
+  /** Shown on viewers' tiles when this device acts as a camera. */
+  cameraName: string;
 }
 
 const KEY = "peersitter:settings";
@@ -12,6 +14,7 @@ const DEFAULTS: Settings = {
   signalingUrl: (import.meta.env.VITE_SIGNALING_URL as string | undefined) ?? "ws://localhost:8787",
   maxStorageGB: 2,
   motionSensitivity: 0.06,
+  cameraName: "",
 };
 
 export function loadSettings(): Settings {
