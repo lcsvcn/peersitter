@@ -60,6 +60,15 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
         </p>
       )}
 
+      {notice && <p className="error">{notice}</p>}
+      {adding ? (
+        <PairingScanner onPayload={addCamera} />
+      ) : (
+        <button className="card add-camera" onClick={() => setAdding(true)}>
+          <span className="card-title">+ Add another camera</span>
+        </button>
+      )}
+
       <div className="tiles">
         {visible.map((e) => (
           <CameraTile
@@ -75,15 +84,6 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
         ))}
       </div>
 
-      {notice && <p className="error">{notice}</p>}
-
-      {adding ? (
-        <PairingScanner onPayload={addCamera} />
-      ) : (
-        <button className="card add-camera" onClick={() => setAdding(true)}>
-          <span className="card-title">+ Add another camera</span>
-        </button>
-      )}
     </div>
   );
 }

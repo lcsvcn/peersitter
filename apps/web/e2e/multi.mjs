@@ -15,7 +15,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 
 const CAMERAS = Number(process.argv[2] ?? 4);
 const VIEWERS = Number(process.argv[3] ?? 4);
-const SIGNAL_PORT = 8787;
+const SIGNAL_PORT = Number(process.env.SIGNAL_PORT ?? 8788); // not 8787, so a dev relay can keep running
 const WEB_URL = "http://localhost:5173";
 const NAMES = ["Nursery", "Garage", "Porch", "Attic", "Kitchen", "Basement", "Shed", "Hall"];
 
@@ -135,8 +135,7 @@ try {
   const addCamera = async (viewer, code, first) => {
     if (!first) await viewer.getByText("+ Add another camera").click();
     await viewer.getByText(/paste the code instead/i).click();
-    await viewer.locator("textarea").fill(code);
-    await viewer.getByRole("button", { name: "Connect" }).click();
+    await viewer.locator("textarea").fill(code); // a complete code connects by itself
   };
   const tile = (viewer, name) => viewer.locator(`section[aria-label="${name}"]`);
   const tileStatus = async (viewer, name) =>
@@ -206,7 +205,6 @@ try {
   await viewers[0].getByText("+ Add another camera").click();
   await viewers[0].getByText(/paste the code instead/i).click();
   await viewers[0].locator("textarea").fill(codes[0]);
-  await viewers[0].getByRole("button", { name: "Connect" }).click();
   check(
     await until(() => viewers[0].getByText("already on your dashboard").isVisible(), 5000),
     "adding the same camera twice is refused with a message",

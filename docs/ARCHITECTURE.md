@@ -10,6 +10,39 @@ Every device runs the same app and picks a role at runtime:
 There is no third role and no account system. Pairing is per-session: each
 time a Camera starts, it mints a fresh random room id and certificate.
 
+## Topology: many cameras, many viewers
+
+A system can have any number of Cameras and any number of Viewers, e.g. four
+spare Android phones as Cameras and four phones (iOS or Android) as Viewers.
+
+- **A Camera is a hub.** It keeps one signaling room open and runs one
+  independent WebRTC connection per Viewer (`PeerLink` per peer, multiplexed
+  over a single signaling socket via `SignalingClient.channelFor(peerId)`).
+  Viewers can join and leave at any time; the pairing QR stays valid. The relay
+  caps viewers per camera (`MAX_VIEWERS_PER_CAMERA`, default 8) because each
+  Viewer costs the Camera another encoded upstream.
+- **A Viewer is a dashboard.** Each scanned/pasted code adds a tile with its
+  own signaling socket and WebRTC link; tiles can be removed or enlarged
+  (only the enlarged tile plays sound). Adding the same camera twice is
+  refused.
+- **Cameras and Viewers never need to know about each other.** N cameras x M
+  viewers is just N x M independent links; the relay only ever sees one small
+  room per camera.
+- **Camera names** (Settings → Camera name) travel in the pairing code and
+  label the Viewer's tiles.
+- **Resilience.** A Camera that loses the relay (restart, Wi-Fi blip) keeps
+  its existing streams, retries, and re-registers with a fresh code. The relay
+  drops a Camera whose device vanished (ping/pong heartbeat) so dead rooms
+  don't linger. A Camera going offline marks its tile "offline" on every
+  Viewer without disturbing the others.
+
+Relay protocol (all JSON): `create-room` → `room-created{roomId}`;
+`join-room{roomId}` → `joined{peerId}` (host gets `peer-joined{peerId}`);
+`signal{data}` from a viewer reaches the host tagged `from`; `signal{to,data}`
+from the host reaches that viewer only (without `to` it broadcasts, the
+original 1:1 behaviour); `peer-left{peerId?}`; errors `room-not-found` and
+`room-full`. Viewers never see each other's traffic.
+
 ## Connection setup (signaling)
 
 ```
@@ -60,51 +93,35 @@ fingerprint check defeats this:
 This is the same pattern Signal/WhatsApp-style "safety numbers" use, just
 automated instead of requiring a manual compare.
 
-## The signaling URL must be `wss://`, not `ws://`, for Android
+## Plain `ws://` signaling on Android
 
-Discovered via real device-to-device testing (see
-`apps/mobile/maestro/README.md`): **Android's Capacitor WebView enforces
-strict HTTPS mixed-content blocking on its app origin.** Capacitor serves
-the app over an `https://` origin on Android, and browsers refuse to open
-a plain, unencrypted `ws://` connection from an HTTPS page to anywhere
-*except* `localhost`/`127.0.0.1` (which are specifically exempted as
-"potentially trustworthy" per the mixed-content spec, since they can't be
-intercepted over a network). Point an Android build's signaling URL at a
-real LAN IP or hostname over plain `ws://` and `new WebSocket(...)` throws
-immediately client-side:
+Android blocks cleartext (non-TLS) network traffic by default
+(`net::ERR_CLEARTEXT_NOT_PERMITTED`), and the Capacitor WebView additionally
+blocks `ws://` from its `https://` app origin as mixed content. Both bit a
+self-hosted relay on a bare LAN address (e.g. a Raspberry Pi) — found via real
+device-to-device testing (`apps/mobile/maestro/README.md`). `ws://localhost`
+failed too: there is no loopback exemption in the WebView.
 
-```
-Failed to construct 'WebSocket': An insecure WebSocket connection may not
-be initiated from a page loaded over HTTPS.
-```
+The Android shell now opts in to both (`usesCleartextTraffic="true"` in the
+manifest, `android.allowMixedContent` in `capacitor.config.ts`). This is safe
+by design: signaling only carries SDP/ICE (never media), and the DTLS
+fingerprint check above defeats a tampering relay, so TLS on the relay adds
+little. `wss://` is still the better choice for relays exposed to the
+internet (Render/Fly/Railway provide it automatically), but it is no longer
+required for LAN or localhost relays on Android. iOS never had this
+restriction.
 
-The app handles this gracefully — it surfaces as an ordinary `error`
-status rather than crashing — but the connection never happens.
+## Known platform limits
 
-**iOS does not enforce this as strictly**: a WKWebView-based Capacitor
-build connects to a plain `ws://<lan-ip>` signaling server without
-complaint, even to non-localhost addresses. This is a genuine
-cross-platform inconsistency worth knowing about, not a testing artifact.
-
-**What this means in practice:**
-- The signaling server itself doesn't need to be the one terminating TLS
-  — any `wss://` endpoint works, including one sitting behind a reverse
-  proxy or a platform's built-in HTTPS.
-- The "self-host for $0" platforms this README already recommends
-  (Render, Fly.io, Railway) all auto-provision TLS on their public URLs,
-  so following that advice as written already produces a working
-  `wss://` endpoint — **this gap doesn't bite the documented cloud
-  deployment path.**
-- It **does** bite the other documented option — "a spare Raspberry Pi on
-  your own network" — if that Pi serves plain `ws://` on its bare LAN IP,
-  which it will unless you put TLS in front of it yourself (e.g.
-  [Caddy](https://caddyserver.com/) with a self-signed or
-  [Tailscale](https://tailscale.com/kb/1153/enabling-https)-issued cert).
-  Android devices on that network simply won't be able to pair; iOS
-  devices will.
-- Only `localhost`/`127.0.0.1` are exempt — the Android emulator's
-  host-loopback alias `10.0.2.2` is **not** covered by the exemption, so
-  it hits this same error too.
+- **iOS 27 simulator/OS:** apps built with the iOS 27 SDK must adopt the
+  UIScene lifecycle. The Capacitor 7 shell doesn't, so it fails to launch
+  there ("UIScene life cycle is required for apps built with this SDK").
+  It runs on iOS 26.x. Fixing it needs a Capacitor upgrade or a manual
+  scene-delegate migration.
+- **Two Android emulators can't connect to each other:** every emulator sits
+  behind its own NAT with the same `10.0.2.15` address, so ICE has no
+  usable path. Android emulator ↔ iOS simulator works; real phones on a
+  LAN are unaffected.
 
 ## NAT traversal: STUN and (optional) TURN
 

@@ -104,8 +104,7 @@ async function main() {
     await viewerPage.goto(WEB_URL);
     await viewerPage.getByText("Be a Viewer").click();
     await viewerPage.getByText(/paste the code instead/i).click();
-    await viewerPage.locator("textarea").fill(pairingCode);
-    await viewerPage.getByRole("button", { name: "Connect" }).click();
+    await viewerPage.locator("textarea").fill(pairingCode); // a complete code connects by itself
 
     await viewerPage.waitForSelector("text=Status: connected", { timeout: 20000 });
     assert(true, "Viewer connected and fingerprint verified");

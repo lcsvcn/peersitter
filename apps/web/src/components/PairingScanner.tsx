@@ -73,15 +73,27 @@ export default function PairingScanner({ onPayload }: Props) {
     };
   }, []);
 
-  function submitPastedCode() {
+  function submitPastedCode(raw = pastedCode) {
     try {
-      const payload = decodePairingPayload(pastedCode.trim());
+      const payload = decodePairingPayload(raw.trim());
       setError(null);
       setPastedCode("");
       onPayload(payload);
     } catch {
       setError("That doesn't look like a valid pairing code.");
     }
+  }
+
+  // "Paste and go": as soon as the field holds a complete, valid code, connect —
+  // no need to hunt for the Connect button behind the on-screen keyboard.
+  function onCodeChange(value: string) {
+    setPastedCode(value);
+    try {
+      decodePairingPayload(value.trim());
+    } catch {
+      return; // still incomplete or not a code; wait for more input
+    }
+    submitPastedCode(value);
   }
 
   return (
@@ -93,12 +105,13 @@ export default function PairingScanner({ onPayload }: Props) {
       <details className="advanced">
         <summary>No camera, or pairing between two desktops? Paste the code instead</summary>
         <textarea
+          id="pairing-code-input"
           value={pastedCode}
-          onChange={(e) => setPastedCode(e.target.value)}
+          onChange={(e) => onCodeChange(e.target.value)}
           rows={4}
           placeholder="Paste the pairing code shown under the Camera's QR code"
         />
-        <button onClick={submitPastedCode}>Connect</button>
+        <button onClick={() => submitPastedCode()}>Connect</button>
       </details>
       {error && <p className="error">{error}</p>}
     </>

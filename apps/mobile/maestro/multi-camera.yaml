@@ -1,0 +1,30 @@
+appId: dev.peersitter.app
+name: "PeerSitter: named Camera ready to be watched (multi-device)"
+---
+# Part of the multi-device run (see multi-device.sh). The runner wipes app
+# data and grants camera/mic at the OS level first, because `clearState`
+# here would also reset those grants. Env: NAME (shown on every viewer's tile).
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 30000
+- tapOn: "Settings"
+- tapOn: "Camera name"
+- eraseText
+- inputText: ${NAME}
+- hideKeyboard
+- tapOn: ".*Be a Camera.*"
+- assertVisible: ${NAME}
+# The status line sits below the QR code, off-screen on a phone (and
+# off-screen elements aren't in the accessibility snapshot), so wait on the
+# pairing prompt instead: it only shows once the room exists.
+- extendedWaitUntil:
+    visible: "Scan this on a Viewer device.*"
+    timeout: 60000
+# Expand the code fallback so the runner can read the pairing code from the
+# accessibility tree (no QR scanning between two virtual devices).
+- scrollUntilVisible:
+    element: ".*Copy the pairing code.*"
+    timeout: 15000
+- tapOn: ".*Copy the pairing code.*"
