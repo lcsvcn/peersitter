@@ -20,6 +20,18 @@ name: "PeerSitter: one Viewer watching two Cameras at once (multi-device)"
     when:
       platform: iOS
     commands:
+      # The field opens below the scanner card; depending on scroll position
+      # it may need a scroll either way, so look down, then up, then tap.
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: DOWN
+          timeout: 8000
+          optional: true
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: UP
+          timeout: 8000
+          optional: true
       - tapOn: ".*Paste the pairing code.*"
 # Typing a 230-char JSON string through the Android IME garbles it, so paste
 # it. The field connects by itself once it holds a complete valid code.
@@ -45,6 +57,18 @@ name: "PeerSitter: one Viewer watching two Cameras at once (multi-device)"
     when:
       platform: iOS
     commands:
+      # The field opens below the scanner card; depending on scroll position
+      # it may need a scroll either way, so look down, then up, then tap.
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: DOWN
+          timeout: 8000
+          optional: true
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: UP
+          timeout: 8000
+          optional: true
       - tapOn: ".*Paste the pairing code.*"
 # Typing a 230-char JSON string through the Android IME garbles it, so paste
 # it. The field connects by itself once it holds a complete valid code.

@@ -17,7 +17,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 export PATH="$PATH:$HOME/Library/Android/sdk/platform-tools"
 APP=dev.peersitter.app
-PORT=${SIGNAL_PORT:-8787}
+PORT=${SIGNAL_PORT:-8788} # not 8787: that's the app default and often taken by a dev relay
 OUT=${OUT_DIR:-/tmp/peersitter-multi-device}
 mkdir -p "$OUT"
 
@@ -35,7 +35,8 @@ if ! curl -fs "localhost:$PORT/healthz" >/dev/null 2>&1; then
   SIGNAL_PID=$(cat "$OUT/signal.pid")
   until curl -fs "localhost:$PORT/healthz" >/dev/null 2>&1; do sleep 1; done
 fi
-trap '[ -n "$SIGNAL_PID" ] && pkill -P "$SIGNAL_PID" 2>/dev/null; true' EXIT
+# Stop only the relay this script started (npx spawns a child, so kill whatever listens on our port).
+trap '[ -n "$SIGNAL_PID" ] && kill $(lsof -tiTCP:$PORT -sTCP:LISTEN) 2>/dev/null; true' EXIT
 
 prep_android() { # serial
   adb -s "$1" shell pm clear $APP >/dev/null
@@ -67,7 +68,7 @@ for spec in $CAMERAS; do
   serial=${spec%%:*}; name=${spec#*:}
   step "camera '$name' on $serial"
   prep_android "$serial"
-  maestro --device "$serial" test -e NAME="$name" multi-camera.yaml >"$OUT/camera-$name.log" 2>&1 \
+  maestro --device "$serial" test -e NAME="$name" -e SIGNAL_URL="ws://localhost:$PORT" multi-camera.yaml >"$OUT/camera-$name.log" 2>&1 \
     || { tail -20 "$OUT/camera-$name.log"; fail "camera flow failed on $serial"; }
   code=$(read_code "$serial")
   [ -n "$code" ] || fail "could not read pairing code from $serial"

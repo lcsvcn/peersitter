@@ -25,8 +25,8 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
     visible: "PeerSitter"
     timeout: 10000
 - tapOn: ".*Be a Camera.*"
-- assertVisible: "Camera"
 
+# The native permission dialog covers the app until answered.
 - extendedWaitUntil:
     visible: "Don’t allow"
     timeout: 5000
@@ -41,6 +41,8 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
 - tapOn:
     text: "Don’t allow"
     optional: true
+
+- assertVisible: "Camera"
 
 # Asserting on the status value ("error") rather than the error-message
 # text itself ("Permission denied") deliberately: that <p class="error">
