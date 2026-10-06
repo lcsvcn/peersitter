@@ -120,6 +120,7 @@ Tests for this topology:
 ```sh
 npm run test:signal                              # relay protocol (node:test)
 npm run test:multi                               # 4 cameras x 4 viewers in Chrome, incl. relay restart
+npm run test:e2e:design --workspace=apps/web     # screenshots + WCAG audit of every screen, 4 themes
 apps/mobile/maestro/multi-device.sh              # real iOS sims + Android emulators (see its header)
 ```
 

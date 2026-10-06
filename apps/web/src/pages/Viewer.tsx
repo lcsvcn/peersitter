@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { ClipStorage, PairingPayload } from "@peersitter/core";
 import CameraTile from "../components/CameraTile";
 import PairingScanner from "../components/PairingScanner";
+import ScreenHeader from "../components/ScreenHeader";
+import { PlusIcon, EyeIcon } from "../components/Icon";
 
 interface Props {
   storage: ClipStorage;
@@ -49,13 +51,11 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
 
   return (
     <div className={`screen${entries.length > 1 ? " wide" : ""}`}>
-      <button className="back" onClick={onBack}>
-        ← Back
-      </button>
-      <h2>Viewer</h2>
+      <ScreenHeader title="Viewer" onBack={onBack} />
 
       {entries.length > 0 && (
-        <p className="status">
+        <p className="status pill count-chip" data-state="idle">
+          <EyeIcon size={16} />
           Cameras: <strong data-testid="camera-count">{entries.length}</strong>
         </p>
       )}
@@ -65,7 +65,12 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
         <PairingScanner onPayload={addCamera} />
       ) : (
         <button className="card add-camera" onClick={() => setAdding(true)}>
-          <span className="card-title">+ Add another camera</span>
+          <span className="card-icon" aria-hidden>
+            <PlusIcon size={26} />
+          </span>
+          <span className="card-body">
+            <span className="card-title">Add another camera</span>
+          </span>
         </button>
       )}
 
@@ -83,7 +88,6 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
           />
         ))}
       </div>
-
     </div>
   );
 }

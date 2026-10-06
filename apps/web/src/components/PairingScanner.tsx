@@ -97,9 +97,11 @@ export default function PairingScanner({ onPayload }: Props) {
   }
 
   return (
-    <>
+    <section className="scanner surface" aria-label="Add a camera">
       <p>Point this device's camera at a Camera's QR code.</p>
-      <video ref={scanVideoRef} muted playsInline className="preview" />
+      <div className="scanner-view">
+        <video ref={scanVideoRef} muted playsInline className="preview" />
+      </div>
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
       <details className="advanced">
@@ -110,10 +112,15 @@ export default function PairingScanner({ onPayload }: Props) {
           onChange={(e) => onCodeChange(e.target.value)}
           rows={4}
           placeholder="Paste the pairing code shown under the Camera's QR code"
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
         />
-        <button onClick={() => submitPastedCode()}>Connect</button>
+        <button className="btn" onClick={() => submitPastedCode()}>
+          Connect
+        </button>
       </details>
       {error && <p className="error">{error}</p>}
-    </>
+    </section>
   );
 }

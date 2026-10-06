@@ -6,6 +6,7 @@ import {
   homekitStatus,
   type HomeKitStatus,
 } from "../lib/homekit";
+import { ChevronRightIcon, ShieldCheckIcon } from "../components/Icon";
 
 export default function HomeKitPanel() {
   const [status, setStatus] = useState<HomeKitStatus>({ running: false });
@@ -46,36 +47,54 @@ export default function HomeKitPanel() {
   const ready = status.running && !status.starting && status.pincode;
 
   return (
-    <details className="advanced" open={status.running}>
-      <summary>Apple Home (HomeKit)</summary>
-      <span className="field-hint">
-        Show this Mac as a camera in the Home app, like a real HomeKit camera: live view, snapshots,
-        and motion events. Runs locally — the stream goes straight to your Home hub, not through us.
-      </span>
+    <details className="settings surface" open={status.running}>
+      <summary>
+        <span className="card-icon" aria-hidden>
+          <ShieldCheckIcon size={26} />
+        </span>
+        <span className="card-body">
+          <span className="card-title">Apple Home (HomeKit)</span>
+          <span className="card-desc">Show this Mac as a camera in the Home app</span>
+        </span>
+        <ChevronRightIcon className="card-chevron" size={20} />
+      </summary>
 
-      <button onClick={toggle}>{status.running ? "Stop HomeKit camera" : "Enable HomeKit camera"}</button>
-      {failure && <p className="status" style={{ color: "var(--danger)" }}>{failure}</p>}
-      {status.running && !ready && !failure && <p className="status">Starting…</p>}
+      <div className="settings-body">
+        <span className="field-hint">
+          Show this Mac as a camera in the Home app, like a real HomeKit camera: live view, snapshots,
+          and motion events. Runs locally — the stream goes straight to your Home hub, not through us.
+        </span>
 
-      {ready && (
-        <>
-          <p className="status">
-            {status.paired
-              ? `✓ Added to Home${status.streaming ? " · streaming now" : ""}`
-              : "In the Home app: + → Add Accessory → scan this code"}
-          </p>
-          {!status.paired && qr && <img src={qr} alt="HomeKit setup code" width={180} height={180} />}
-          {!status.paired && (
+        <button className={`btn${status.running ? " tonal" : ""}`} onClick={toggle}>
+          {status.running ? "Stop HomeKit camera" : "Enable HomeKit camera"}
+        </button>
+        {failure && <p className="error">{failure}</p>}
+        {status.running && !ready && !failure && <p className="status">Starting…</p>}
+
+        {ready && (
+          <>
             <p className="status">
-              Or enter code <code>{status.pincode}</code>
+              {status.paired
+                ? `✓ Added to Home${status.streaming ? " · streaming now" : ""}`
+                : "In the Home app: + → Add Accessory → scan this code"}
             </p>
-          )}
-          <span className="field-hint">
-            Video: {status.video}
-            {status.audio ? ` · Mic: ${status.audio}` : " · no audio (microphone permission off)"}
-          </span>
-        </>
-      )}
+            {!status.paired && qr && (
+              <div className="qr" style={{ alignSelf: "center" }}>
+                <img src={qr} alt="HomeKit setup code" width={180} height={180} />
+              </div>
+            )}
+            {!status.paired && (
+              <p className="status">
+                Or enter code <code>{status.pincode}</code>
+              </p>
+            )}
+            <span className="field-hint">
+              Video: {status.video}
+              {status.audio ? ` · Mic: ${status.audio}` : " · no audio (microphone permission off)"}
+            </span>
+          </>
+        )}
+      </div>
     </details>
   );
 }

@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClipStorage } from "@peersitter/core";
 import Home from "./pages/Home";
 import Camera from "./pages/Camera";
 import Viewer from "./pages/Viewer";
 import Gallery from "./pages/Gallery";
+import { applyTheme, watchSystemTheme } from "./theme";
 import { loadSettings, saveSettings, gbToBytes, type Settings } from "./settings";
 
 export type Screen = "home" | "camera" | "viewer" | "gallery";
@@ -14,6 +15,11 @@ export default function App() {
 
   const storage = useMemo(() => new ClipStorage(gbToBytes(settings.maxStorageGB)), []);
   storage.setMaxBytes(gbToBytes(settings.maxStorageGB));
+
+  useEffect(() => {
+    applyTheme(settings.appearance, settings.design);
+    return watchSystemTheme(() => applyTheme(settings.appearance, settings.design));
+  }, [settings.appearance, settings.design]);
 
   function updateSettings(patch: Partial<Settings>) {
     const next = { ...settings, ...patch };

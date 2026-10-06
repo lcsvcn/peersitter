@@ -10,6 +10,8 @@ import {
   type ClipStorage,
 } from "@peersitter/core";
 import { useMotionRecording } from "../hooks/useMotionRecording";
+import ScreenHeader from "../components/ScreenHeader";
+import { CopyIcon, UsersIcon } from "../components/Icon";
 
 type Status = "starting" | "waiting-for-viewer" | "connecting" | "connected" | "error";
 
@@ -181,11 +183,16 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
     qrDataUrl && !relayLost ? (
       <div className="pairing">
         <p>Scan this on a Viewer device:</p>
-        <img src={qrDataUrl} alt="Pairing QR code" width={320} height={320} />
+        <div className="qr">
+          <img src={qrDataUrl} alt="Pairing QR code" width={320} height={320} />
+        </div>
         {pairingCode && (
           <details className="advanced">
             <summary>No camera on the other device? Copy the pairing code instead</summary>
             <textarea readOnly value={pairingCode} rows={4} onFocus={(e) => e.currentTarget.select()} />
+            <button className="btn tonal" onClick={() => void navigator.clipboard?.writeText(pairingCode)}>
+              <CopyIcon size={18} /> Copy code
+            </button>
           </details>
         )}
       </div>
@@ -193,40 +200,54 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
 
   return (
     <div className="screen">
-      <button className="back" onClick={onBack}>
-        ← Back
-      </button>
-      <h2>{cameraName.trim() || "Camera"}</h2>
+      <ScreenHeader title={cameraName.trim() || "Camera"} onBack={onBack} />
 
-      <video ref={videoRef} autoPlay muted playsInline className="preview" />
+      <div className="preview-frame">
+        <video ref={videoRef} autoPlay muted playsInline className="preview" />
+        {connectedCount > 0 && (
+          <span className="overlay tl" aria-hidden>
+            <span className="rec-dot" /> LIVE
+          </span>
+        )}
+        <span className="overlay tr" aria-hidden>
+          <UsersIcon size={14} /> {connectedCount}
+        </span>
+      </div>
 
-      {states.length === 0 ? (
-        pairing
-      ) : (
-        <details className="advanced">
-          <summary>Add another viewer</summary>
-          {pairing}
-        </details>
-      )}
+      <div className="status-row">
+        <p className="status pill" data-state={status}>
+          Status: <strong>{status}</strong>
+        </p>
+        <p className="status pill" data-state={connectedCount > 0 ? "live" : "idle"}>
+          Viewers watching: <strong data-testid="viewer-count">{connectedCount}</strong>
+        </p>
+      </div>
 
-      <p className="status">
-        Status: <strong>{status}</strong>
-      </p>
-      <p className="status">
-        Viewers watching: <strong data-testid="viewer-count">{connectedCount}</strong>
-      </p>
       {relayLost && (
         <p className="error">Lost contact with the signaling server — reconnecting. Current viewers are unaffected.</p>
       )}
       {error && <p className="error">{error}</p>}
 
-      <label className="field toggle">
-        <input type="checkbox" checked={motionEnabled} onChange={(e) => setMotionEnabled(e.target.checked)} />
-        Record automatically when this camera sees movement
-      </label>
-      {motionEnabled && (
-        <p className="status">{isRecording ? "● Recording (motion detected)" : "Watching for motion…"}</p>
+      {states.length === 0 ? (
+        pairing
+      ) : (
+        <details className="advanced surface">
+          <summary>Add another viewer</summary>
+          {pairing}
+        </details>
       )}
+
+      <div className="surface group" style={{ padding: "var(--space-3) var(--space-4)" }}>
+        <label className="field toggle">
+          <input type="checkbox" checked={motionEnabled} onChange={(e) => setMotionEnabled(e.target.checked)} />
+          Record automatically when this camera sees movement
+        </label>
+        {motionEnabled && (
+          <p className="status pill" data-state={isRecording ? "error" : "idle"}>
+            {isRecording ? "● Recording (motion detected)" : "Watching for motion…"}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SignalingClient, PeerLink, type ClipStorage, type PairingPayload } from "@peersitter/core";
 import { useMotionRecording } from "../hooks/useMotionRecording";
+import { ExpandIcon, ShrinkIcon, XIcon } from "./Icon";
 
 export type TileStatus = "connecting" | "verifying" | "connected" | "fingerprint-mismatch" | "offline" | "error";
 
@@ -104,18 +105,30 @@ export default function CameraTile({
     <section className={`tile${focused ? " focused" : ""}`} data-testid="camera-tile" aria-label={label}>
       <header className="tile-header">
         <h3>{label}</h3>
-        <button className="icon-btn" onClick={onToggleFocus} aria-label={focused ? "Show all cameras" : `Enlarge ${label}`}>
-          {focused ? "Shrink" : "Enlarge"}
+        <button
+          className="icon-btn"
+          onClick={onToggleFocus}
+          aria-label={focused ? "Show all cameras" : `Enlarge ${label}`}
+          title={focused ? "Show all cameras" : "Enlarge (plays sound)"}
+        >
+          {focused ? <ShrinkIcon size={20} /> : <ExpandIcon size={20} />}
         </button>
-        <button className="icon-btn" onClick={onRemove} aria-label={`Remove ${label}`}>
-          Remove
+        <button className="icon-btn danger" onClick={onRemove} aria-label={`Remove ${label}`} title="Remove camera">
+          <XIcon size={20} />
         </button>
       </header>
 
-      {/* Only the enlarged tile plays sound, so a wall of cameras isn't a wall of noise. */}
-      <video ref={videoRef} autoPlay playsInline muted={!focused} className="preview" />
+      <div className="preview-frame">
+        {/* Only the enlarged tile plays sound, so a wall of cameras isn't a wall of noise. */}
+        <video ref={videoRef} autoPlay playsInline muted={!focused} className="preview" />
+        {isRecording && (
+          <span className="overlay tl" aria-hidden>
+            <span className="rec-dot" /> REC
+          </span>
+        )}
+      </div>
 
-      <p className="status">
+      <p className="status pill" data-state={status}>
         Status: <strong>{status}</strong>
       </p>
 
@@ -134,7 +147,9 @@ export default function CameraTile({
             Record automatically when the feed shows movement
           </label>
           {motionEnabled && (
-            <p className="status">{isRecording ? "● Recording (motion detected)" : "Watching for motion…"}</p>
+            <p className="status pill" data-state={isRecording ? "error" : "idle"}>
+              {isRecording ? "● Recording (motion detected)" : "Watching for motion…"}
+            </p>
           )}
         </>
       )}

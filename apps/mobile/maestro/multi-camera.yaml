@@ -9,7 +9,7 @@ name: "PeerSitter: named Camera ready to be watched (multi-device)"
 - extendedWaitUntil:
     visible: "PeerSitter"
     timeout: 30000
-- tapOn: "Settings"
+- tapOn: ".*Settings.*"
 - tapOn: "Camera name"
 - eraseText
 - inputText: ${NAME}

@@ -43,6 +43,28 @@ from the host reaches that viewer only (without `to` it broadcasts, the
 original 1:1 behaviour); `peer-left{peerId?}`; errors `room-not-found` and
 `room-full`. Viewers never see each other's traffic.
 
+## Design system
+
+The UI follows each platform's own design language, in light and dark:
+
+| Platform | Style (`data-design`) | Look |
+| --- | --- | --- |
+| iOS, iPadOS, macOS (incl. the Tauri desktop app) | `glass` | Liquid Glass: translucent blurred surfaces over soft colour, capsule controls, SF type, iOS-style switches |
+| Android, web, Windows, Linux | `material` | Material 3 / You: tonal surfaces, pill buttons, Roboto, M3 switches and segmented buttons |
+
+`src/theme.ts` picks the style by user agent (override: Settings → Design
+style) and light/dark from the OS (override: Settings → Theme), setting
+`data-design` / `data-theme` on `<html>` before first paint; `src/styles.css`
+holds the four token sets and the components only use semantic tokens.
+Contrast is >= 4.5:1 for text (WCAG AA), >= 3:1 for outlines and focus rings,
+touch targets >= 44px, focus rings on everything, reduced-motion respected,
+and QR codes always render dark-on-white so they scan in dark mode.
+
+`npm run test:e2e:design --workspace=apps/web` drives every screen in all
+four style/theme combinations on phone and desktop viewports, screenshots them
+(`apps/web/e2e/design-shots/`), and fails on any serious axe-core violation
+(WCAG 2 A/AA, including colour contrast).
+
 ## Connection setup (signaling)
 
 ```

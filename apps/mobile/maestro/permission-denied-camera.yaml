@@ -56,6 +56,6 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
 
 # The app should still be fully navigable afterwards — not stuck.
 - tapOn:
-    text: "← Back"
+    text: "Back"
     retryTapIfNoChange: false
 - assertVisible: "PeerSitter"

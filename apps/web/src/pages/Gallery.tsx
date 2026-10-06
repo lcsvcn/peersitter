@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { ClipStorage, ClipMeta } from "@peersitter/core";
 import { saveBlob } from "@peersitter/core";
+import ScreenHeader from "../components/ScreenHeader";
+import { DownloadIcon, FilmIcon, HardDriveIcon, PlayIcon, TrashIcon } from "../components/Icon";
 
 interface Props {
   storage: ClipStorage;
@@ -51,38 +53,61 @@ export default function Gallery({ storage, onBack }: Props) {
   }
 
   const cap = storage.getMaxBytes();
+  const pct = cap > 0 ? Math.min(100, Math.round((used / cap) * 100)) : 0;
 
   return (
     <div className="screen">
-      <button className="back" onClick={onBack}>
-        ← Back
-      </button>
-      <h2>Recordings</h2>
-      <p className="status">
-        {formatBytes(used)} / {formatBytes(cap)} used locally · oldest clips are deleted automatically once
-        this fills up
-      </p>
+      <ScreenHeader title="Recordings" onBack={onBack} />
+
+      <div className="surface group" style={{ padding: "var(--space-4)", display: "grid", gap: "var(--space-3)" }}>
+        <div className="meter" role="meter" aria-label="Storage used" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
+          <span style={{ width: `${pct}%` }} />
+        </div>
+        <p className="status">
+          <HardDriveIcon size={18} />
+          {formatBytes(used)} / {formatBytes(cap)} used locally · oldest clips are deleted automatically once
+          this fills up
+        </p>
+      </div>
 
       {playing && (
         <div className="pairing">
-          <video src={playing.url} controls autoPlay className="preview" />
+          <div className="preview-frame" style={{ width: "100%" }}>
+            <video src={playing.url} controls autoPlay className="preview" />
+          </div>
           <p className="status">{playing.name}</p>
         </div>
       )}
 
-      {clips.length === 0 && <p className="subtitle">No clips yet — motion-triggered recording saves here.</p>}
+      {clips.length === 0 && (
+        <div className="empty surface">
+          <span className="card-icon" aria-hidden>
+            <FilmIcon size={34} />
+          </span>
+          <p className="subtitle">No clips yet — motion-triggered recording saves here.</p>
+        </div>
+      )}
 
       <div className="clip-list">
         {clips.map((clip) => (
           <div className="clip-row" key={clip.name}>
-            <div>
+            <span className="clip-thumb" aria-hidden>
+              <FilmIcon size={24} />
+            </span>
+            <div className="clip-meta">
               <div>{new Date(clip.createdAt).toLocaleString()}</div>
               <div className="subtitle">{formatBytes(clip.size)}</div>
             </div>
             <div className="clip-actions">
-              <button onClick={() => play(clip)}>Play</button>
-              <button onClick={() => download(clip)}>Export</button>
-              <button onClick={() => remove(clip)}>Delete</button>
+              <button onClick={() => play(clip)}>
+                <PlayIcon size={18} /> Play
+              </button>
+              <button onClick={() => download(clip)}>
+                <DownloadIcon size={18} /> Export
+              </button>
+              <button className="danger" onClick={() => remove(clip)}>
+                <TrashIcon size={18} /> Delete
+              </button>
             </div>
           </div>
         ))}

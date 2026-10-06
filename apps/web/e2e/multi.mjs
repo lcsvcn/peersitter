@@ -172,7 +172,7 @@ try {
 
   // ---------- viewers ----------
   const addCamera = async (viewer, code, first) => {
-    if (!first) await viewer.getByText("+ Add another camera").click();
+    if (!first) await viewer.getByText("Add another camera").click();
     await viewer.getByText(/paste the code instead/i).click();
     await viewer.locator("textarea").fill(code); // a complete code connects by itself
   };
@@ -285,7 +285,7 @@ try {
   check(camCounts.every((n) => n === VIEWERS), `every camera reports ${VIEWERS} viewers watching (${camCounts})`);
 
   // ---------- guards ----------
-  await viewers[0].getByText("+ Add another camera").click();
+  await viewers[0].getByText("Add another camera").click();
   await viewers[0].getByText(/paste the code instead/i).click();
   await viewers[0].locator("textarea").fill(codes[0]);
   check(

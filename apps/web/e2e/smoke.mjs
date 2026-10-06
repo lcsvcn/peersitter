@@ -129,7 +129,7 @@ async function main() {
     await viewerPage.locator('input[type="checkbox"]').click();
     await sleep(1000); // let the async stop()+saveClip() settle
 
-    await viewerPage.getByText("← Back").click();
+    await viewerPage.getByRole("button", { name: "Back" }).click();
     await viewerPage.locator("button.card", { hasText: "Recordings" }).click();
     const clipRows = viewerPage.locator(".clip-row");
     await clipRows.first().waitFor({ timeout: 10000 });

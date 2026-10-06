@@ -37,15 +37,15 @@ name: "PeerSitter: Camera role smoke test"
 - takeScreenshot: "02-camera"
 
 # Scroll back up — the previous step scrolled down to reach the motion
-# controls, which pushes "← Back" at the top off-screen.
+# controls, which pushes "Back" at the top off-screen.
 - scrollUntilVisible:
-    element: "← Back"
+    element: "Back"
     direction: UP
     timeout: 10000
 # retryTapIfNoChange must be false here: the camera screen's live motion
 # timer keeps the hierarchy constantly changing, which confuses Maestro's
 # default no-change-retry heuristic into never registering the tap.
 - tapOn:
-    text: "← Back"
+    text: "Back"
     retryTapIfNoChange: false
 - assertVisible: "PeerSitter"
