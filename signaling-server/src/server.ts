@@ -61,7 +61,9 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
     res.end();
   });
 
-  const wss = new WebSocketServer({ server: httpServer });
+  // Signaling messages (SDP/ICE) are a few KB; refuse anything bigger than 64 KB
+  // instead of letting a client make the relay buffer up to ws's 100 MB default.
+  const wss = new WebSocketServer({ server: httpServer, maxPayload: 64 * 1024 });
 
   const send = (ws: WebSocket, msg: unknown) => {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -83,6 +85,10 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
     const peerId = randomUUID();
     alive.set(ws, true);
     ws.on("pong", () => alive.set(ws, true));
+    // Without a listener, a protocol error (oversized or malformed frame) from
+    // one client is an uncaught exception that would take the relay down for
+    // everyone. ws closes the offending socket itself; we just must not crash.
+    ws.on("error", () => ws.terminate());
 
     ws.on("message", (raw) => {
       let msg: any;

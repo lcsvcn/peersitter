@@ -11,7 +11,7 @@ import { chromium } from "playwright";
 import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
-const SIGNAL_PORT = 8787;
+const SIGNAL_PORT = Number(process.env.SIGNAL_PORT ?? 8788); // not 8787, so a dev relay (or another project's) can keep running
 const WEB_PORT = 5173;
 const WEB_URL = `http://localhost:${WEB_PORT}`;
 
@@ -33,8 +33,9 @@ async function waitForPort(url, timeoutMs = 20000) {
   throw new Error(`Timed out waiting for ${url}`);
 }
 
-function spawnProcess(cmd, args, cwd, name) {
-  const proc = spawn(cmd, args, { cwd, stdio: "pipe" });
+function spawnProcess(cmd, args, cwd, name, env = {}) {
+  // detached: own process group, so killing it also reaps the child `npx` launched
+  const proc = spawn(cmd, args, { cwd, stdio: "pipe", detached: true, env: { ...process.env, ...env } });
   proc.stdout.on("data", (d) => process.env.SMOKE_VERBOSE && console.log(`[${name}] ${d}`));
   proc.stderr.on("data", (d) => process.env.SMOKE_VERBOSE && console.error(`[${name}] ${d}`));
   return proc;
@@ -46,7 +47,7 @@ async function main() {
   const signalRoot = `${repoRoot}signaling-server`;
 
   log("starting signaling server...");
-  const signalProc = spawnProcess("npx", ["tsx", "src/index.ts"], signalRoot, "signal");
+  const signalProc = spawnProcess("npx", ["tsx", "src/index.ts"], signalRoot, "signal", { PORT: String(SIGNAL_PORT) });
   await waitForPort(`http://localhost:${SIGNAL_PORT}/healthz`);
 
   log("starting vite dev server...");
@@ -63,6 +64,9 @@ async function main() {
 
   const cameraCtx = await browser.newContext();
   const viewerCtx = await browser.newContext();
+  for (const ctx of [cameraCtx, viewerCtx]) {
+    await ctx.addInitScript((url) => localStorage.setItem("peersitter:settings", JSON.stringify({ signalingUrl: url })), `ws://localhost:${SIGNAL_PORT}`);
+  }
   await cameraCtx.grantPermissions(["camera", "microphone"]);
   await viewerCtx.grantPermissions(["camera", "microphone"]);
 
@@ -137,8 +141,13 @@ async function main() {
     log("saved screenshots to apps/web/e2e/");
   } finally {
     await browser.close();
-    signalProc.kill();
-    webProc.kill();
+    for (const p of [signalProc, webProc]) {
+      try {
+        process.kill(-p.pid);
+      } catch {
+        p.kill();
+      }
+    }
   }
 
   if (failed) {

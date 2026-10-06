@@ -100,12 +100,29 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
       const certificate = await generatePairingCertificate();
       const fingerprint = certificateFingerprint(certificate);
 
+      function scheduleReconnect() {
+        if (cancelled || retryTimer) return; // one pending retry at a time
+        setRelayLost(true);
+        retryTimer = setTimeout(() => {
+          retryTimer = undefined;
+          void openRoom();
+        }, RECONNECT_DELAY_MS);
+      }
+
       async function openRoom() {
+        let signaling: SignalingClient | null = null;
         try {
-          const signaling = new SignalingClient(signalingUrl);
-          signalingRef.current = signaling;
-          const roomId = await signaling.createRoom();
-          if (cancelled) return signaling.close();
+          signaling = new SignalingClient(signalingUrl);
+          const current = signaling;
+          signalingRef.current = current;
+
+          // Wired before createRoom so a socket that dies mid-handshake
+          // still triggers a retry instead of hanging forever.
+          current.onClose = () => {
+            if (signalingRef.current === current) scheduleReconnect();
+          };
+          const roomId = await current.createRoom();
+          if (cancelled) return current.close();
 
           const code = encodePairingPayload(
             buildPairingPayload({ signalingUrl, roomId, fingerprint, name: nameRef.current }),
@@ -118,20 +135,16 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
           setRelayLost(false);
           setError(null);
 
-          signaling.onPeerJoined = async (peerId) => {
+          current.onPeerJoined = async (peerId) => {
             if (!peerId) return;
             setViewerState(peerId, "connecting");
             const link = new PeerLink({
-              signaling: signaling.channelFor(peerId),
+              signaling: current.channelFor(peerId),
               certificate,
               events: {
                 onStateChange: (state) => {
-                  if (state === "failed" || state === "closed" || state === "disconnected") {
-                    if (state !== "disconnected") dropViewer(peerId);
-                    else setViewerState(peerId, state);
-                  } else {
-                    setViewerState(peerId, state);
-                  }
+                  if (state === "failed" || state === "closed") dropViewer(peerId);
+                  else setViewerState(peerId, state); // "disconnected" is often transient
                 },
               },
             });
@@ -139,21 +152,15 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
             await link.startAsCamera(localStream);
           };
 
-          signaling.onPeerLeft = (_reason, peerId) => {
+          current.onPeerLeft = (_reason, peerId) => {
             if (peerId) dropViewer(peerId);
           };
-
-          // The relay dropped us (restart, Wi-Fi blip). Existing viewers keep
-          // streaming peer-to-peer; open a fresh room so new viewers can join.
-          signaling.onClose = () => {
-            if (cancelled) return;
-            setRelayLost(true);
-            retryTimer = setTimeout(() => void openRoom(), RECONNECT_DELAY_MS);
-          };
         } catch {
-          if (cancelled) return;
-          setRelayLost(true);
-          retryTimer = setTimeout(() => void openRoom(), RECONNECT_DELAY_MS);
+          // Couldn't reach the relay (or it dropped mid-handshake). Existing
+          // viewers keep streaming peer-to-peer; try again shortly.
+          if (signaling && signalingRef.current === signaling) signaling.onClose = undefined;
+          signaling?.close();
+          scheduleReconnect();
         }
       }
       await openRoom();

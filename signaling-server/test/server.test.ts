@@ -203,3 +203,16 @@ test("heartbeat drops a camera that stops answering pings and frees its room", a
   ws.terminate();
   await s.close();
 });
+
+test("oversized messages are refused and the connection dropped, not buffered", async () => {
+  const v = new Client();
+  await v.ready();
+  const closed = new Promise<number>((res) => v.ws.once("close", (code) => res(code)));
+  v.ws.send(JSON.stringify({ type: "signal", data: "x".repeat(200 * 1024) }));
+  assert.equal(await closed, 1009); // "message too big"
+  // ...and the relay is still healthy for everyone else.
+  const { c, roomId } = await camera();
+  const ok = await viewer(roomId);
+  await ok.next("joined");
+  assert.ok((await c.next("peer-joined")).peerId);
+});

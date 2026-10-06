@@ -17,6 +17,19 @@ const CAMERAS = Number(process.argv[2] ?? 4);
 const VIEWERS = Number(process.argv[3] ?? 4);
 const SIGNAL_PORT = Number(process.env.SIGNAL_PORT ?? 8788); // not 8787, so a dev relay can keep running
 const WEB_URL = "http://localhost:5173";
+// Each camera broadcasts a solid, unique colour (with a moving square so motion
+// detection still fires), so a viewer tile can be checked for showing *its*
+// camera and not just "some video".
+const COLORS = [
+  [220, 40, 40],
+  [40, 190, 60],
+  [50, 90, 230],
+  [235, 200, 30],
+  [170, 60, 200],
+  [30, 190, 200],
+  [240, 130, 30],
+  [140, 140, 140],
+];
 const NAMES = ["Nursery", "Garage", "Porch", "Attic", "Kitchen", "Basement", "Shed", "Hall"];
 
 const log = (m) => console.log(`[multi] ${m}`);
@@ -60,6 +73,7 @@ let signal = startSignal();
 const vite = spawn("npx", ["vite", "--port", "5173", "--strictPort"], {
   cwd: new URL("..", import.meta.url).pathname,
   stdio: "ignore",
+  detached: true,
 });
 
 /** Polls `fn` until it returns truthy; returns that value or false on timeout. */
@@ -85,7 +99,7 @@ try {
     args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
   });
 
-  const newDevice = async (settings = {}) => {
+  const newDevice = async (settings = {}, feedColor = null) => {
     const ctx = await browser.newContext();
     await ctx.grantPermissions(["camera", "microphone"]);
     // Test-only hook: remember every RTCPeerConnection so we can read real
@@ -101,6 +115,31 @@ try {
         },
       });
     });
+    if (feedColor) {
+      await ctx.addInitScript((rgb) => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 320;
+        canvas.height = 240;
+        const g = canvas.getContext("2d");
+        let t = 0;
+        // setInterval, not rAF: background pages throttle rAF to nothing.
+        setInterval(() => {
+          g.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+          g.fillRect(0, 0, 320, 240);
+          g.fillStyle = "rgba(255,255,255,0.35)";
+          g.fillRect((t * 9) % 280, 100, 40, 40);
+          t++;
+        }, 50);
+        const video = canvas.captureStream(20);
+        const audio = new AudioContext().createMediaStreamDestination().stream;
+        navigator.mediaDevices.getUserMedia = async (c) => {
+          const out = new MediaStream();
+          if (c?.video) video.getVideoTracks().forEach((tr) => out.addTrack(tr.clone()));
+          if (c?.audio) audio.getAudioTracks().forEach((tr) => out.addTrack(tr.clone()));
+          return out;
+        };
+      }, feedColor);
+    }
     await ctx.addInitScript((s) => {
       localStorage.setItem("peersitter:settings", JSON.stringify(s));
     }, { signalingUrl: `ws://localhost:${SIGNAL_PORT}`, ...settings });
@@ -111,7 +150,7 @@ try {
 
   // ---------- cameras ----------
   const cameras = await Promise.all(
-    Array.from({ length: CAMERAS }, (_, i) => newDevice({ cameraName: NAMES[i] })),
+    Array.from({ length: CAMERAS }, (_, i) => newDevice({ cameraName: NAMES[i] }, COLORS[i])),
   );
   const readCode = async (cam) => {
     await cam.waitForSelector(".pairing textarea", { state: "attached", timeout: 20000 });
@@ -198,6 +237,50 @@ try {
   for (const v of viewers) live.push(await expectLive(v, CAMERAS));
   check(live.every((n) => n === CAMERAS), `decoded video frames advance on every link (${live} of ${CAMERAS} per viewer)`);
 
+  /** Average colour of a tile's currently displayed frame. */
+  const tileColor = (viewer, name) =>
+    tile(viewer, name)
+      .locator("video")
+      .evaluate((v) => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 16;
+        const g = c.getContext("2d");
+        g.drawImage(v, 0, 0, 16, 16);
+        const d = g.getImageData(0, 0, 16, 16).data;
+        let r = 0, gr = 0, b = 0;
+        for (let i = 0; i < d.length; i += 4) (r += d[i]), (gr += d[i + 1]), (b += d[i + 2]);
+        const n = d.length / 4;
+        return [r / n, gr / n, b / n];
+      });
+  const near = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < 70; // 35% white overlay shifts a little
+
+  let seen = 0;
+  const wrong = [];
+  for (const [vi, v] of viewers.entries()) {
+    await v.bringToFront();
+    // Enlarge nothing; sample every tile where it is. Allow a moment for frames to render.
+    for (let i = 0; i < CAMERAS; i++) {
+      let ok = false;
+      let got = null;
+      // Browsers don't paint a <video> that's below the fold, so scroll to it like a user would.
+      await tile(v, NAMES[i]).scrollIntoViewIfNeeded();
+      for (let attempt = 0; attempt < 20 && !ok; attempt++) {
+        got = await tileColor(v, NAMES[i]).catch(() => null);
+        ok = !!got && near(got, COLORS[i]);
+        if (!ok) await sleep(300);
+      }
+      if (ok) seen++;
+      else wrong.push(`viewer${vi + 1}/${NAMES[i]} got ${got?.map(Math.round)} want ${COLORS[i]}`);
+    }
+  }
+  check(
+    seen === VIEWERS * CAMERAS,
+    `every viewer SEES every camera's own picture: ${seen}/${VIEWERS * CAMERAS} tiles show the right colour${wrong.length ? " — " + wrong.slice(0, 3).join("; ") : ""}`,
+  );
+  await viewers[0].bringToFront();
+  await viewers[0].screenshot({ path: "e2e/screenshot-multi-viewer.png", fullPage: true });
+  log("saved viewer dashboard screenshot to apps/web/e2e/screenshot-multi-viewer.png");
+
   const camCounts = await Promise.all(cameras.map(camViewerCount));
   check(camCounts.every((n) => n === VIEWERS), `every camera reports ${VIEWERS} viewers watching (${camCounts})`);
 
@@ -262,7 +345,8 @@ try {
   // ---------- signaling server restart ----------
   const oldCode = codes[1];
   killTree(signal);
-  await sleep(1500);
+  await until(async () => !(await fetch(`http://localhost:${SIGNAL_PORT}/healthz`).then(() => true, () => false)), 15000, 100);
+  await sleep(1000);
   const liveDuringOutage = await expectLive(viewers[0], CAMERAS - 1);
   if (process.env.DEBUG_PCS)
     console.log(
@@ -297,7 +381,7 @@ try {
   console.error(err);
 } finally {
   killTree(signal);
-  vite.kill();
+  killTree(vite);
 }
 console.log(failed ? "\nMULTI TEST FAILED" : "\nMULTI TEST PASSED");
 process.exit(failed ? 1 : 0);
