@@ -6,7 +6,7 @@
   "build": {
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm --prefix ../web run build"
+    "beforeBuildCommand": "npm --prefix ../homekit install --omit=dev --no-audit --no-fund && npm --prefix ../web run build"
   },
   "app": {
     "windows": [
@@ -20,7 +20,8 @@
     ],
     "security": {
       "csp": null
-    }
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,
@@ -34,6 +35,11 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    },
+    "resources": {
+      "../../homekit/src": "homekit/src",
+      "../../homekit/node_modules": "homekit/node_modules",
+      "../../homekit/package.json": "homekit/package.json"
     }
   }
 }

@@ -6,5 +6,11 @@
   <string>PeerSitter needs camera access to stream video to a paired Viewer or to scan a pairing QR code.</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>PeerSitter needs microphone access to stream audio to a paired Viewer.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>PeerSitter advertises this Mac as a HomeKit camera on your local network so the Home app can find it.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_hap._tcp</string>
+  </array>
 </dict>
 </plist>

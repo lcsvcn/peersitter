@@ -36,3 +36,13 @@ final Info.plist automatically. The webview then uses the OS's native
 If you package recordings to native disk instead of the browser-download
 fallback, swap `packages/core/src/recorder.ts`'s `saveBlob` for Tauri's
 `@tauri-apps/plugin-fs`.
+
+## Apple Home (HomeKit) on macOS
+
+The macOS build can also present itself to the Apple Home app as a HomeKit
+camera — see [`apps/homekit/README.md`](../homekit/README.md) for how it
+works and its limits (needs `node` + `ffmpeg` installed; not an
+Apple-certified accessory). `npm run build` installs the bridge's
+dependencies and bundles it into the `.app`. The bridge is only reachable
+inside this desktop shell, via the `homekit_*` commands in
+`src-tauri/src/homekit.rs`.

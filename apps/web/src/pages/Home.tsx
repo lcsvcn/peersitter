@@ -1,4 +1,6 @@
 import type { Settings } from "../settings";
+import { homekitAvailable } from "../lib/homekit";
+import HomeKitPanel from "./HomeKitPanel";
 
 interface Props {
   settings: Settings;
@@ -33,6 +35,8 @@ export default function Home({ settings, onSettingsChange, onChooseCamera, onCho
         <span className="card-title">Recordings</span>
         <span className="card-desc">Browse motion-triggered clips saved on this device.</span>
       </button>
+
+      {homekitAvailable() && <HomeKitPanel />}
 
       <details className="advanced">
         <summary>Settings</summary>

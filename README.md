@@ -34,6 +34,7 @@ packages/core/       shared pairing / WebRTC / recording logic
 apps/web/            the actual app (React) — Camera and Viewer roles
 apps/mobile/         Capacitor shell → real iOS/Android app from apps/web
 apps/desktop/        Tauri shell → real Windows/macOS/Linux app from apps/web
+apps/homekit/        HomeKit bridge: shows a Mac as a camera in the Apple Home app (see its README)
 docs/ARCHITECTURE.md how pairing, encryption, and NAT traversal work
 ```
 

@@ -1,0 +1,17 @@
+{
+  "name": "@peersitter/homekit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Publishes this Mac's camera as a native HomeKit IP camera (HAP) so it shows up in the Apple Home app.",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "test": "node --test src/*.test.mjs"
+  },
+  "dependencies": {
+    "hap-nodejs": "^0.14.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
