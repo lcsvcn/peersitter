@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { homekitMotion } from "../lib/homekit";
 import { MotionDetector, LocalRecorder, recordingFilename, type ClipStorage } from "@peersitter/core";
 
 /**
@@ -23,10 +24,12 @@ export function useMotionRecording(
 
     const detector = new MotionDetector(stream, { sensitivity });
     detector.onMotionStart = () => {
+      homekitMotion(true);
       recorderRef.current.start(stream);
       setIsRecording(true);
     };
     detector.onMotionEnd = async () => {
+      homekitMotion(false);
       if (!recorderRef.current.isRecording) return;
       const blob = await recorderRef.current.stop();
       const name = recordingFilename(filenamePrefix);
@@ -38,6 +41,7 @@ export function useMotionRecording(
 
     return () => {
       detector.stop();
+      homekitMotion(false);
       // Don't discard a clip that was mid-recording when motion recording
       // got toggled off or the page navigated away — save what we have.
       if (recorderRef.current.isRecording) {
