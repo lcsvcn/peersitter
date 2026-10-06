@@ -11,7 +11,9 @@
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:signal": "npm run dev --workspace=signaling-server",
     "build:web": "npm run build --workspace=apps/web",
-    "build:signal": "npm run build --workspace=signaling-server"
+    "build:signal": "npm run build --workspace=signaling-server",
+    "test:signal": "npm test --workspace=signaling-server",
+    "test:multi": "npm run test:e2e:multi --workspace=apps/web"
   },
   "license": "MIT"
 }

@@ -98,14 +98,31 @@ the "Advanced: signaling server" field on the home screen, or
 only ever pushes a handful of small JSON messages per pairing, never
 media.
 
-**Use a `wss://` URL, not `ws://`, unless every device is on
-`localhost`.** Render/Fly.io/Railway give you `wss://` automatically, so
-this is a non-issue on those — but the Android app specifically refuses
-to open a plain `ws://` connection to anything other than
-`localhost`/`127.0.0.1` (a WebView mixed-content restriction; iOS doesn't
-enforce this). Self-hosting on bare LAN hardware like a Raspberry Pi
-needs TLS in front of it (e.g. Caddy) for Android devices to pair at
-all — see `docs/ARCHITECTURE.md`.
+Prefer `wss://` for a relay exposed to the internet (Render/Fly.io/Railway
+give you that automatically). Plain `ws://` also works, including on
+Android, for a relay on your LAN or `localhost` — signaling carries no media
+and is verified end-to-end by the pairing fingerprint (see
+`docs/ARCHITECTURE.md`).
+
+Set `MAX_VIEWERS_PER_CAMERA` (default 8) to cap how many viewers one camera
+serves.
+
+## Many cameras, many viewers
+
+Run as many Cameras as you have spare devices and watch them all from any
+number of Viewers: each Viewer scans or pastes every Camera's code and gets
+a tile per camera; each Camera serves several Viewers at once. Name your
+cameras under Settings → Camera name. Details in
+`docs/ARCHITECTURE.md#topology-many-cameras-many-viewers`.
+
+Tests for this topology:
+
+```sh
+npm run test:signal                              # relay protocol (node:test)
+npm run test:multi                               # 4 cameras x 4 viewers in Chrome, incl. relay restart
+npm run test:e2e:design --workspace=apps/web     # screenshots + WCAG audit of every screen, 4 themes
+apps/mobile/maestro/multi-device.sh              # real iOS sims + Android emulators (see its header)
+```
 
 ## Native apps
 

@@ -13,14 +13,19 @@ name: "PeerSitter: Settings persist across app relaunch"
     visible: "PeerSitter"
     timeout: 10000
 - tapOn: ".*Settings.*"
-- assertVisible: "ws://localhost:8787"
+# The signaling field is the last item of the (long) settings sheet, so it
+# starts below the fold and off-screen content isn't in the accessibility tree.
+- scrollUntilVisible:
+    element: "ws://localhost:8787"
+    direction: DOWN
+    timeout: 30000
 - tapOn: "ws://localhost:8787"
 - eraseText
 - inputText: "wss://relay.example.com"
 # hideKeyboard is flaky on iOS (Maestro's own docs note this) — tap a
 # neutral nearby label instead to shift focus away from the text field,
 # which dismisses the keyboard as a side effect on both platforms.
-- tapOn: ".*Motion sensitivity.*"
+- tapOn: "Signaling server"
 - takeScreenshot: "01-settings-changed"
 
 - stopApp
@@ -31,5 +36,8 @@ name: "PeerSitter: Settings persist across app relaunch"
     visible: "PeerSitter"
     timeout: 10000
 - tapOn: ".*Settings.*"
-- assertVisible: "wss://relay.example.com"
+- scrollUntilVisible:
+    element: "wss://relay.example.com"
+    direction: DOWN
+    timeout: 30000
 - takeScreenshot: "02-settings-persisted-after-relaunch"

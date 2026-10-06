@@ -1,0 +1,90 @@
+appId: dev.peersitter.app
+name: "PeerSitter: one Viewer watching two Cameras at once (multi-device)"
+---
+# Part of the multi-device run (see multi-device.sh).
+# Env: CODE1, CODE2 (pairing codes), NAME1, NAME2 (camera names on the tiles).
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "PeerSitter"
+    timeout: 30000
+- tapOn: ".*Be a Viewer.*"
+- tapOn: ".*[Pp]aste the code instead.*"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "pairing-code-input"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The field opens below the scanner card; depending on scroll position
+      # it may need a scroll either way, so look down, then up, then tap.
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: DOWN
+          timeout: 8000
+          optional: true
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: UP
+          timeout: 8000
+          optional: true
+      - tapOn: ".*Paste the pairing code.*"
+# Typing a 230-char JSON string through the Android IME garbles it, so paste
+# it. The field connects by itself once it holds a complete valid code.
+- setClipboard: ${CODE1}
+- pasteText
+- extendedWaitUntil:
+    visible: ".*${NAME1}.*"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: ".*connected.*"
+    timeout: 180000
+
+# Second camera on the same dashboard.
+- tapOn: ".*Add another camera.*"
+- tapOn: ".*[Pp]aste the code instead.*"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "pairing-code-input"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The field opens below the scanner card; depending on scroll position
+      # it may need a scroll either way, so look down, then up, then tap.
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: DOWN
+          timeout: 8000
+          optional: true
+      - scrollUntilVisible:
+          element: ".*Paste the pairing code.*"
+          direction: UP
+          timeout: 8000
+          optional: true
+      - tapOn: ".*Paste the pairing code.*"
+# Typing a 230-char JSON string through the Android IME garbles it, so paste
+# it. The field connects by itself once it holds a complete valid code.
+- setClipboard: ${CODE2}
+- pasteText
+- extendedWaitUntil:
+    visible: ".*Cameras:.*"
+    timeout: 30000
+# Each tile fills a phone screen, so the second one is below the fold (and
+# off-screen elements aren't in the accessibility snapshot): scroll to it.
+- scrollUntilVisible:
+    element: ".*${NAME2}.*"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: ".*connected.*"
+    timeout: 180000
+# Nothing on the dashboard may report a failure.
+- assertNotVisible: ".*(error|offline|mismatch|limit).*"
+- takeScreenshot: "multi-viewer-two-cameras"

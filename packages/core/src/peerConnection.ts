@@ -1,4 +1,4 @@
-import { SignalingClient } from "./signalingClient";
+import type { SignalChannel } from "./signalingClient";
 import { fingerprintFromSdp } from "./pairing";
 import type { ConnectionEvents } from "./types";
 
@@ -21,12 +21,13 @@ const DEFAULT_ICE_SERVERS: IceServerConfig[] = [
  */
 export class PeerLink {
   readonly pc: RTCPeerConnection;
-  private signaling: SignalingClient;
+  private signaling: SignalChannel;
   private events: ConnectionEvents;
   dataChannel?: RTCDataChannel;
+  private signalQueue: Promise<void> = Promise.resolve();
 
   constructor(opts: {
-    signaling: SignalingClient;
+    signaling: SignalChannel;
     certificate?: RTCCertificate;
     iceServers?: IceServerConfig[];
     events?: ConnectionEvents;
@@ -53,7 +54,14 @@ export class PeerLink {
       if (stream) this.events.onRemoteStream?.(stream);
     });
 
-    this.signaling.onSignal = (data) => this.handleSignal(data as any);
+    // Handle signals strictly in arrival order: an ICE candidate must not be
+    // applied before the offer/answer it belongs to has finished applying,
+    // or it's rejected and lost (likelier the more links share a device).
+    this.signaling.onSignal = (data) => {
+      this.signalQueue = this.signalQueue
+        .then(() => this.handleSignal(data as any))
+        .catch((err) => console.warn("[peer] signal handling failed", err));
+    };
   }
 
   private async handleSignal(msg: { type: string; sdp?: string; candidate?: RTCIceCandidateInit }) {

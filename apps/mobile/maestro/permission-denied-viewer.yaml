@@ -16,22 +16,26 @@ name: "PeerSitter: Viewer role falls back gracefully when permission is denied"
 - stopApp
 - launchApp:
     clearState: true
+    permissions:
+      all: deny
 
 - extendedWaitUntil:
     visible: "PeerSitter"
     timeout: 10000
 - tapOn: ".*Be a Viewer.*"
-- assertVisible: "Viewer"
 
+# The native permission dialog covers the app until answered.
 - extendedWaitUntil:
     visible: "Don’t allow"
-    timeout: 5000
+    timeout: 8000
     optional: true
 - tapOn:
     text: "Don’t allow"
     optional: true
 
-- assertVisible: "scanning"
+- assertVisible: "Viewer"
+# Still on the scan screen — denied camera must not leave the viewer stuck or crashed.
+- assertVisible: ".*Point this device.*QR code.*"
 - takeScreenshot: "01-viewer-permission-denied-still-scanning"
 
 - tapOn: ".*[Pp]aste the code instead.*"

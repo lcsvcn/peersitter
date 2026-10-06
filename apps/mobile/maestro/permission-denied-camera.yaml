@@ -18,13 +18,15 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
 - stopApp
 - launchApp:
     clearState: true
+    permissions:
+      all: deny
 
 - extendedWaitUntil:
     visible: "PeerSitter"
     timeout: 10000
 - tapOn: ".*Be a Camera.*"
-- assertVisible: "Camera"
 
+# The native permission dialog covers the app until answered.
 - extendedWaitUntil:
     visible: "Don’t allow"
     timeout: 5000
@@ -39,6 +41,8 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
 - tapOn:
     text: "Don’t allow"
     optional: true
+
+- assertVisible: "Camera"
 
 # Asserting on the status value ("error") rather than the error-message
 # text itself ("Permission denied") deliberately: that <p class="error">
@@ -54,6 +58,6 @@ name: "PeerSitter: Camera role degrades gracefully when permission is denied"
 
 # The app should still be fully navigable afterwards — not stuck.
 - tapOn:
-    text: "← Back"
+    text: "Back"
     retryTapIfNoChange: false
 - assertVisible: "PeerSitter"

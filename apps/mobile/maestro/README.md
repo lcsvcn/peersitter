@@ -1,6 +1,6 @@
 # Maestro UI tests
 
-Six flows, driven against the real installed app (not a dev server) on
+Eight flows, driven against the real installed app (not a dev server) on
 iOS Simulator and Android emulator — confirmed passing on both unless
 noted otherwise:
 
@@ -19,6 +19,25 @@ noted otherwise:
 - `settings-persistence.yaml` — confirms a changed setting survives a
   full native process kill + relaunch (localStorage inside the native
   WebView, not just a React re-render). Passes on both platforms.
+
+- `multi-camera.yaml` / `multi-viewer.yaml` — building blocks for
+  `multi-device.sh`, the multi-device integration run: N Android emulators
+  as named Cameras and M phones as Viewers that each add the first two
+  cameras to their dashboard, all through one local signaling server. The
+  script reads each camera's pairing code out of the Android accessibility
+  tree, runs the viewer flows in parallel, then checks on the cameras that
+  every one reports all viewers (`Viewers watching: M`). Verified with 2
+  Android cameras + 3 iOS-simulator viewers (6 live WebRTC links).
+
+```sh
+CAMERAS="emulator-5554:Nursery emulator-5556:Garage" \
+VIEWERS="ios:<udid> ios:<udid> ios:<udid>" ./multi-device.sh
+```
+
+  It needs no TLS: iOS simulators share the host's loopback and
+  `adb reverse` maps each emulator's `localhost:8787` there. Use iOS 26.x
+  simulators and keep Android emulators as Cameras only (see Platform
+  limits in `docs/ARCHITECTURE.md`).
 
 ## Running
 
@@ -71,6 +90,25 @@ adb shell pm revoke dev.peersitter.app android.permission.RECORD_AUDIO
   correctly no-ops with a null stream, but the status text isn't
   conditioned on that. Harmless, but slightly misleading. Not fixed as
   part of this testing pass since it's cosmetic only.
+
+- **Android camera/mic permission was silently broken until multi-device
+  testing:** the manifest lacked `MODIFY_AUDIO_SETTINGS`, which Capacitor's
+  WebView requires before it grants `getUserMedia({audio})`, so on Android
+  the Camera role always ended in `Permission denied` even with permissions
+  granted. That also meant the `permission-denied-*` flows were passing for
+  the wrong reason; they now use `launchApp: permissions: {all: deny}`.
+  Maestro's `launchApp` grants everything by default.
+- **Android blocks cleartext `ws://`** (`ERR_CLEARTEXT_NOT_PERMITTED`) even
+  to localhost; fixed in the manifest + Capacitor config.
+- **Typing a long JSON pairing code with `inputText` garbles it on Android**
+  (doubled `{`, dropped characters). Use `setClipboard` + `pasteText`. The
+  Viewer's paste field connects as soon as it holds a valid code, so no
+  Connect tap (and no on-screen keyboard dismissal) is needed.
+- **Each camera tile fills a phone screen**, so the second tile is below the
+  fold and absent from the accessibility snapshot; `scrollUntilVisible` to
+  it. Likewise the Android WebView doesn't expose the motion checkbox's
+  label text once the live preview runs, so `smoke-camera.yaml` asserts on
+  the motion status line instead.
 
 ### Platform/tooling quirks (not app bugs — don't "fix" the app for these)
 

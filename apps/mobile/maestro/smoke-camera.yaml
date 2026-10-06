@@ -27,22 +27,25 @@ name: "PeerSitter: Camera role smoke test"
 # since off-screen content isn't present in the accessibility snapshot
 # assertVisible/extendedWaitUntil read from (confirmed via inspect_screen
 # reporting "2 pages" of vertical scroll on this screen).
+# Assert on the motion status line rather than the checkbox label: the Android
+# WebView doesn't expose that label's text in the accessibility tree once the
+# live camera preview is running (the checkbox node has no text at all).
 - scrollUntilVisible:
-    element: ".*Record automatically when this camera sees movement.*"
+    element: ".*(Recording \\(motion detected\\)|Watching for motion).*"
     direction: DOWN
-    timeout: 10000
+    timeout: 30000
 - takeScreenshot: "02-camera"
 
 # Scroll back up — the previous step scrolled down to reach the motion
-# controls, which pushes "← Back" at the top off-screen.
+# controls, which pushes "Back" at the top off-screen.
 - scrollUntilVisible:
-    element: "← Back"
+    element: "Back"
     direction: UP
     timeout: 10000
 # retryTapIfNoChange must be false here: the camera screen's live motion
 # timer keeps the hierarchy constantly changing, which confuses Maestro's
 # default no-change-retry heuristic into never registering the tap.
 - tapOn:
-    text: "← Back"
+    text: "Back"
     retryTapIfNoChange: false
 - assertVisible: "PeerSitter"
