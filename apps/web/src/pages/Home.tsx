@@ -57,7 +57,9 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
               aria-current={section === item.id ? "page" : undefined}
               onClick={() => setSection(item.id)}
             >
-              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-icon" data-tone={item.id}>
+                {item.icon}
+              </span>
               <span className="nav-label">{item.label}</span>
             </button>
           ))}
@@ -69,7 +71,7 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
         {section === "start" && (
           <div className="pane-stack">
             <section className="hero">
-              <h1 className="title">PeerSitter</h1>
+              <h1 className="pane-title">PeerSitter</h1>
               <p className="subtitle">
                 Turn spare phones into private cameras and watch them from anywhere. No account, no cloud —
                 your video goes straight between your devices.

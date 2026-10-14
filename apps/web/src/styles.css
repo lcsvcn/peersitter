@@ -1759,3 +1759,116 @@ html[data-platform="macos"] .field:has(> .segmented) > .segmented {
   align-items: center;
   gap: var(--space-3);
 }
+
+/* =====================================================================
+   macOS app chrome (reference: classic Mac utilities such as Little Snitch)
+   Docked vibrancy sidebar with coloured icon tiles and a solid-blue
+   selection; content with a titled header band and hairline-separated rows.
+   Only on real windows (>= 720px); narrow windows keep the tab bar.
+   ===================================================================== */
+@media (min-width: 720px) {
+  html[data-platform="macos"] {
+    --sel: #0a5fd8; /* selected-row blue; white text on it is 6:1 */
+  }
+
+  html[data-platform="macos"] .nav {
+    top: 0;
+    height: 100vh;
+    margin: 0;
+    width: 220px;
+    padding: 52px 10px 12px;
+    border: 0;
+    border-right: 1px solid var(--outline-soft);
+    border-radius: 0;
+    box-shadow: none;
+    background: color-mix(in srgb, var(--surface) 55%, transparent);
+  }
+
+  html[data-platform="macos"] .nav-item {
+    min-height: 30px;
+    padding: 0 8px;
+    border-radius: 8px;
+  }
+
+  html[data-platform="macos"] .nav-item:hover {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+  }
+
+  html[data-platform="macos"] .nav-item[aria-current="page"] {
+    background: var(--sel);
+    color: #fff;
+  }
+
+  html[data-platform="macos"] .nav-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    color: #fff;
+    background: linear-gradient(160deg, #6a6a70, #48484d);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+  }
+
+  html[data-platform="macos"] .nav-item .nav-icon svg {
+    width: 14px;
+    height: 14px;
+    color: #fff;
+  }
+
+  html[data-platform="macos"] .nav-icon[data-tone="start"] {
+    background: linear-gradient(160deg, #3d9bff, #0a6cf0);
+  }
+
+  html[data-platform="macos"] .nav-icon[data-tone="recordings"] {
+    background: linear-gradient(160deg, #c46bf5, #8a3fd1);
+  }
+
+  html[data-platform="macos"] .nav-icon[data-tone="homekit"] {
+    background: linear-gradient(160deg, #ffae33, #f27a00);
+  }
+
+  /* content: titled header band, then padded body */
+  html[data-platform="macos"] .content {
+    padding: 0 0 24px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+  }
+
+  html[data-platform="macos"] .pane-stack {
+    max-width: none;
+    margin: 0;
+    padding: 0 24px;
+    gap: 14px;
+  }
+
+  html[data-platform="macos"] .pane-title {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin: 0 -24px 2px;
+    padding: 16px 24px 12px;
+    font-size: 1.7rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--outline-soft);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+
+  html[data-platform="macos"] .hero {
+    display: contents;
+  }
+
+  html[data-platform="macos"] .hero .subtitle,
+  html[data-platform="macos"] .hero .chips {
+    margin: 0;
+  }
+
+  /* list rows: hairlines and hover, like a native table */
+  html[data-platform="macos"] .role-grid {
+    border-radius: 10px;
+    box-shadow: none;
+  }
+
+  html[data-platform="macos"] .card.action:hover {
+    background: color-mix(in srgb, var(--text) 6%, transparent);
+  }
+}
