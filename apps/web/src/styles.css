@@ -2392,3 +2392,105 @@ html[data-platform="macos"] .screen {
     background: var(--glass-card);
   }
 }
+
+/* ---------- short pairing code ---------- */
+.code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-inner);
+  background: var(--accent-container);
+  color: var(--on-accent-container);
+  text-align: center;
+}
+
+.code-card .eyebrow,
+.code-card .field-hint {
+  color: var(--on-accent-container);
+}
+
+.code-display {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.1;
+  color: var(--on-accent-container);
+  user-select: all;
+}
+
+.code-card .field.toggle {
+  align-self: stretch;
+  justify-content: center;
+  text-align: left;
+}
+
+.safety-list {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-3);
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.safety-number {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  margin-left: var(--space-2);
+}
+
+/* nearby cameras + code entry (viewer) */
+.nearby-list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.nearby-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-inner);
+  background: var(--surface-2);
+}
+
+.nearby-row .card-body {
+  min-width: 0;
+}
+
+.code-input {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-btn);
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.trust-badge.ok {
+  background: var(--success-container);
+  color: var(--on-success-container);
+}

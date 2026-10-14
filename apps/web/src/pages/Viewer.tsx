@@ -2,10 +2,12 @@ import { useState } from "react";
 import type { ClipStorage, PairingPayload } from "@peersitter/core";
 import CameraTile from "../components/CameraTile";
 import PairingScanner from "../components/PairingScanner";
+import NearbyAndCode from "../components/NearbyAndCode";
 import ScreenHeader from "../components/ScreenHeader";
 import { PlusIcon, EyeIcon } from "../components/Icon";
 
 interface Props {
+  signalingUrl: string;
   storage: ClipStorage;
   motionSensitivity: number;
   onBack: () => void;
@@ -15,20 +17,22 @@ interface Entry {
   key: number;
   payload: PairingPayload;
   label: string;
+  /** Short code this camera was added with, if any. */
+  code?: string;
 }
 
 /**
  * Viewer dashboard: any number of cameras at once, one tile each. Scan or
  * paste a code to add a camera; remove a tile to disconnect from it.
  */
-export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
+export default function Viewer({ signalingUrl, storage, motionSensitivity, onBack }: Props) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [adding, setAdding] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const [focusedKey, setFocusedKey] = useState<number | null>(null);
   const [nextKey, setNextKey] = useState(1);
 
-  function addCamera(payload: PairingPayload) {
+  function addCamera(payload: PairingPayload, code?: string) {
     if (entries.some((e) => e.payload.roomId === payload.roomId)) {
       setNotice("That camera is already on your dashboard.");
       return;
@@ -36,7 +40,7 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
     setNotice(null);
     setEntries((prev) => [
       ...prev,
-      { key: nextKey, payload, label: payload.name?.trim() || `Camera ${nextKey}` },
+      { key: nextKey, payload, code, label: payload.name?.trim() || `Camera ${nextKey}` },
     ]);
     setNextKey((k) => k + 1);
     setAdding(false);
@@ -62,7 +66,14 @@ export default function Viewer({ storage, motionSensitivity, onBack }: Props) {
 
       {notice && <p className="error">{notice}</p>}
       {adding ? (
-        <PairingScanner onPayload={addCamera} />
+        <>
+          <NearbyAndCode
+            signalingUrl={signalingUrl}
+            addedCodes={entries.flatMap((e) => (e.code ? [e.code] : []))}
+            onPayload={(payload, code) => addCamera(payload, code)}
+          />
+          <PairingScanner onPayload={(payload) => addCamera(payload)} />
+        </>
       ) : (
         <button className="card add-camera" onClick={() => setAdding(true)}>
           <span className="card-icon" aria-hidden>

@@ -1,6 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { randomUUID } from "node:crypto";
 import { WebSocketServer, type WebSocket } from "ws";
+import { generateCode, networkKey, normalizeCode } from "./codes.js";
 
 /**
  * Signaling-only relay for WebRTC pairing.
@@ -30,6 +31,10 @@ export interface ServerOptions {
   maxViewers?: number;
   /** Liveness ping interval; a socket that misses one pong is dropped. 0 disables. */
   heartbeatMs?: number;
+  /** Failed code lookups allowed per network per minute before it is blocked for the rest of the minute. */
+  maxCodeFailures?: number;
+  /** Trust X-Forwarded-For (set when running behind a reverse proxy / PaaS) to tell networks apart. */
+  trustProxy?: boolean;
 }
 
 interface Room {
@@ -37,6 +42,14 @@ interface Room {
   hostId: string;
   peers: Map<string, WebSocket>; // includes host
   createdAt: number;
+  /** Short human-typeable code (XXXXXXXX) that resolves to this room while the camera is online. */
+  code: string;
+  name: string;
+  /** The camera's DTLS fingerprint as claimed by the camera (untrusted: viewers confirm a safety number). */
+  fingerprint: string;
+  /** Listed to viewers on the same network. */
+  discoverable: boolean;
+  network: string;
 }
 
 export interface SignalingServer {
@@ -49,7 +62,13 @@ export interface SignalingServer {
 export function startSignalingServer(opts: ServerOptions = {}): Promise<SignalingServer> {
   const maxViewers = opts.maxViewers ?? 8;
   const heartbeatMs = opts.heartbeatMs ?? 30_000;
+  const maxCodeFailures = opts.maxCodeFailures ?? 12;
+  const trustProxy = opts.trustProxy ?? false;
   const rooms = new Map<string, Room>();
+  const roomsByCode = new Map<string, Room>();
+  /** Sockets that asked to be told which cameras are nearby, per network. */
+  const nearbyWatchers = new Map<string, Set<WebSocket>>();
+  const codeFailures = new Map<string, { count: number; resetAt: number }>();
 
   const httpServer = createServer((req, res) => {
     if (req.url === "/healthz") {
@@ -69,8 +88,25 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
   };
 
+  const FINGERPRINT_RE = /^[0-9a-f]{2}(:[0-9a-f]{2}){31}$/i;
+
+  function nearbyList(network: string) {
+    return [...rooms.values()]
+      .filter((r) => r.network === network && r.discoverable)
+      .map((r) => ({ code: r.code, name: r.name }));
+  }
+
+  function announceNearby(network: string) {
+    const watchers = nearbyWatchers.get(network);
+    if (!watchers?.size) return;
+    const payload = { type: "nearby", cameras: nearbyList(network) };
+    for (const w of watchers) send(w, payload);
+  }
+
   function closeRoom(room: Room, reason: string) {
     rooms.delete(room.id);
+    roomsByCode.delete(room.code);
+    announceNearby(room.network);
     for (const [id, peer] of room.peers) {
       if (id === room.hostId) continue;
       send(peer, { type: "peer-left", reason });
@@ -80,7 +116,8 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
 
   const alive = new WeakMap<WebSocket, boolean>();
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws, req) => {
+    const network = networkKey(req.socket.remoteAddress, req.headers["x-forwarded-for"] as string | undefined, trustProxy);
     let joinedRoom: Room | null = null;
     const peerId = randomUUID();
     alive.set(ws, true);
@@ -102,10 +139,61 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
         case "create-room": {
           if (joinedRoom) return; // one room per socket
           const roomId = randomUUID();
-          const room: Room = { id: roomId, hostId: peerId, peers: new Map([[peerId, ws]]), createdAt: Date.now() };
+          const room: Room = {
+            id: roomId,
+            hostId: peerId,
+            peers: new Map([[peerId, ws]]),
+            createdAt: Date.now(),
+            code: generateCode((c) => roomsByCode.has(c)),
+            name: typeof msg.name === "string" ? msg.name.trim().slice(0, 40) : "",
+            fingerprint: typeof msg.fingerprint === "string" && FINGERPRINT_RE.test(msg.fingerprint) ? msg.fingerprint.toLowerCase() : "",
+            discoverable: msg.discoverable === true,
+            network,
+          };
           rooms.set(roomId, room);
+          roomsByCode.set(room.code, room);
           joinedRoom = room;
-          send(ws, { type: "room-created", roomId });
+          send(ws, { type: "room-created", roomId, code: room.code });
+          if (room.discoverable) announceNearby(network);
+          break;
+        }
+
+        // Host changes what it advertises without re-creating the room.
+        case "update-room": {
+          if (!joinedRoom || joinedRoom.hostId !== peerId) return;
+          if (typeof msg.discoverable === "boolean") joinedRoom.discoverable = msg.discoverable;
+          if (typeof msg.name === "string") joinedRoom.name = msg.name.trim().slice(0, 40);
+          announceNearby(joinedRoom.network);
+          break;
+        }
+
+        // Viewer: "which cameras are on my network?" — also subscribes to changes.
+        case "list-nearby": {
+          let set = nearbyWatchers.get(network);
+          if (!set) nearbyWatchers.set(network, (set = new Set()));
+          set.add(ws);
+          send(ws, { type: "nearby", cameras: nearbyList(network) });
+          break;
+        }
+
+        // Viewer: turn a typed code into the room to join + the camera's claimed fingerprint.
+        case "resolve-code": {
+          const now = Date.now();
+          const fails = codeFailures.get(network);
+          if (fails && fails.resetAt > now && fails.count >= maxCodeFailures) {
+            send(ws, { type: "error", message: "rate-limited" });
+            return;
+          }
+          const code = normalizeCode(msg.code);
+          const room = code ? roomsByCode.get(code) : undefined;
+          if (!room) {
+            const f = fails && fails.resetAt > now ? fails : { count: 0, resetAt: now + 60_000 };
+            f.count++;
+            codeFailures.set(network, f);
+            send(ws, { type: "error", message: "code-not-found" });
+            return;
+          }
+          send(ws, { type: "code-resolved", roomId: room.id, fingerprint: room.fingerprint, name: room.name });
           break;
         }
 
@@ -151,6 +239,7 @@ export function startSignalingServer(opts: ServerOptions = {}): Promise<Signalin
     });
 
     ws.on("close", () => {
+      nearbyWatchers.get(network)?.delete(ws);
       if (!joinedRoom) return;
       const room = joinedRoom;
       if (peerId === room.hostId) {

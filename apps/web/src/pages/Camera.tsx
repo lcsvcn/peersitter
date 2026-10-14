@@ -10,10 +10,10 @@ import {
   type ClipStorage,
   parseIceServers,
 } from "@peersitter/core";
-import { loadSettings } from "../settings";
+import { loadSettings, saveSettings } from "../settings";
 import { useMotionRecording } from "../hooks/useMotionRecording";
 import ScreenHeader from "../components/ScreenHeader";
-import { CopyIcon, UsersIcon } from "../components/Icon";
+import { CopyIcon, LockIcon, UsersIcon } from "../components/Icon";
 
 type Status = "starting" | "waiting-for-viewer" | "connecting" | "connected" | "error";
 
@@ -42,12 +42,18 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
   const [viewerStates, setViewerStates] = useState<Record<string, RTCPeerConnectionState>>({});
   const [motionEnabled, setMotionEnabled] = useState(true);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [shortCode, setShortCode] = useState<string | null>(null);
+  const [discoverable, setDiscoverable] = useState(() => loadSettings().discoverable);
+  const [safety, setSafety] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const linksRef = useRef(new Map<string, PeerLink>());
   const signalingRef = useRef<SignalingClient | null>(null);
   const nameRef = useRef(cameraName);
   nameRef.current = cameraName;
+  const discoverableRef = useRef(discoverable);
+  discoverableRef.current = discoverable;
 
   const { isRecording } = useMotionRecording(stream, storage, motionEnabled, motionSensitivity, "camera");
 
@@ -81,6 +87,10 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
       links.get(peerId)?.close();
       links.delete(peerId);
       setViewerState(peerId, null);
+      setSafety((prev) => {
+        const { [peerId]: _gone, ...rest } = prev;
+        return rest;
+      });
     }
 
     (async () => {
@@ -125,8 +135,13 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
           current.onClose = () => {
             if (signalingRef.current === current) scheduleReconnect();
           };
-          const roomId = await current.createRoom();
+          const { roomId, code: short } = await current.createRoomWithCode({
+            name: nameRef.current,
+            fingerprint,
+            discoverable: discoverableRef.current,
+          });
           if (cancelled) return current.close();
+          setShortCode(short ? `${short.slice(0, 4)}-${short.slice(4)}` : null);
 
           const code = encodePairingPayload(
             buildPairingPayload({ signalingUrl, roomId, fingerprint, name: nameRef.current }),
@@ -150,6 +165,9 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
                 onStateChange: (state) => {
                   if (state === "failed" || state === "closed") dropViewer(peerId);
                   else setViewerState(peerId, state); // "disconnected" is often transient
+                  if (state === "connected") {
+                    void link.safetyNumber().then((n) => n && setSafety((prev) => ({ ...prev, [peerId]: n })));
+                  }
                 },
               },
             });
@@ -182,10 +200,44 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
     };
   }, [signalingUrl]);
 
+  function toggleDiscoverable(on: boolean) {
+    setDiscoverable(on);
+    saveSettings({ ...loadSettings(), discoverable: on });
+    void signalingRef.current?.updateRoom({ discoverable: on });
+  }
+
+  async function copyShortCode() {
+    if (!shortCode) return;
+    await navigator.clipboard?.writeText(shortCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
+
+  const safetyNumbers = Object.values(safety);
+
   const pairing =
     qrDataUrl && !relayLost ? (
       <div className="pairing">
-        <p>Scan this on a Viewer device:</p>
+        {shortCode && (
+          <div className="code-card">
+            <span className="eyebrow">Pairing code</span>
+            <div className="code-display" data-testid="pairing-short-code" aria-label={`Pairing code ${shortCode}`}>
+              {shortCode}
+            </div>
+            <p className="field-hint">
+              On the Viewer, choose <strong>Be a Viewer</strong> and type this code — no camera needed. It works
+              from anywhere, as long as both devices use the same signaling server.
+            </p>
+            <button className="btn tonal" onClick={copyShortCode}>
+              <CopyIcon size={18} /> {copied ? "Copied" : "Copy code"}
+            </button>
+            <label className="field toggle">
+              <input type="checkbox" checked={discoverable} onChange={(e) => toggleDiscoverable(e.target.checked)} />
+              Show this camera to viewers on my network
+            </label>
+          </div>
+        )}
+        <p>Or scan this on a Viewer device:</p>
         <div className="qr">
           <img src={qrDataUrl} alt="Pairing QR code" width={320} height={320} />
         </div>
@@ -225,6 +277,25 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
           Viewers watching: <strong data-testid="viewer-count">{connectedCount}</strong>
         </p>
       </div>
+
+      {safetyNumbers.length > 0 && (
+        <details className="advanced surface group" style={{ padding: "0 var(--space-3)" }}>
+          <summary>
+            <LockIcon size={16} /> Security — safety numbers
+          </summary>
+          <p className="field-hint" style={{ padding: "0 var(--space-2) var(--space-2)" }}>
+            If a viewer joined with a code instead of scanning the QR, ask them to compare the number shown on
+            their tile with the one here. They should match exactly.
+          </p>
+          <ul className="safety-list">
+            {Object.entries(safety).map(([id, n], i) => (
+              <li key={id}>
+                Viewer {i + 1} <strong className="safety-number">{n}</strong>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {relayLost && (
         <p className="error">Lost contact with the signaling server — reconnecting. Current viewers are unaffected.</p>
