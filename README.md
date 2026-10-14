@@ -35,6 +35,7 @@ apps/web/            the actual app (React) — Camera and Viewer roles
 apps/mobile/         Capacitor shell → real iOS/Android app from apps/web
 apps/desktop/        Tauri shell → real Windows/macOS/Linux app from apps/web
 apps/homekit/        HomeKit bridge: shows a Mac as a camera in the Apple Home app (see its README)
+apps/site/           static download page, deployed to https://peersitter.vercel.app (`vercel deploy --prod` from that folder)
 docs/ARCHITECTURE.md how pairing, encryption, and NAT traversal work
 ```
 
