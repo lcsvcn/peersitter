@@ -65,6 +65,36 @@ four style/theme combinations on phone and desktop viewports, screenshots them
 (`apps/web/e2e/design-shots/`), and fails on any serious axe-core violation
 (WCAG 2 A/AA, including colour contrast).
 
+## Pairing without a QR code: short codes and nearby cameras
+
+A Camera that is fixed in place (a Mac on a desk, a phone on a shelf) is
+awkward to scan, so a Viewer can also connect two other ways:
+
+- **Short code.** Each Camera shows a code like `A5GF-75GH` (8 characters from a
+  32-symbol alphabet without 0/O/1/I, 2^40 possibilities). Type it on the
+  Viewer; the relay resolves it to the room. It works across the internet.
+  Both devices must use the same signaling server (Settings), because the code
+  does not carry the server address the way the QR does.
+- **Cameras on your network.** Cameras that opt in ("Show this camera to
+  viewers on my network", on by default) appear by name on every Viewer that
+  shares their network, with one-tap Connect. "Same network" is decided by
+  the relay: same public IP, or the same /24 for private LAN addresses
+  (`TRUST_PROXY=1` when behind a reverse proxy). It is a convenience, not a
+  security boundary.
+
+Security. A QR code carries the Camera's certificate fingerprint over a channel
+the relay never sees. A code or nearby entry gets the fingerprint *from the
+relay*, which is untrusted, so those tiles are marked "Paired by code — not
+verified" until the user compares an 8-digit **safety number** (derived from
+both ends' fingerprints) with the one on the Camera's Security panel and taps
+"It matches". Wrong code guesses are rate limited per network (12 per minute),
+and codes only exist while the Camera is online.
+
+Relay messages added: `create-room{name,fingerprint,discoverable}` →
+`room-created{roomId,code}`, `update-room`, `resolve-code` →
+`code-resolved{roomId,fingerprint,name}` | `error code-not-found|rate-limited`,
+`list-nearby` → `nearby{cameras:[{code,name}]}` (pushed on every change).
+
 ## Connection setup (signaling)
 
 ```

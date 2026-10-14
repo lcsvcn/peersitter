@@ -11,7 +11,14 @@ test('viewer exposes the paste-code fallback', async ({ app, screen }) => {
   await app.open('/');
   await screen.getByText('Be a Viewer').tap();
   await screen.getByText(/paste the code instead/i).tap();
-  await expect(screen.getByRole('textbox')).toBeVisible();
+  await expect(screen.getByPlaceholder(/Paste the pairing code/)).toBeVisible();
+});
+
+test('viewer can enter a short camera code', async ({ app, screen }) => {
+  await app.open('/');
+  await screen.getByText('Be a Viewer').tap();
+  await expect(screen.getByLabel('Camera code')).toBeVisible();
+  await expect(screen.getByText('Cameras on your network')).toBeVisible();
 });
 
 // Agentic flows need a model key (AI_GATEWAY_API_KEY). Skipped without one so
