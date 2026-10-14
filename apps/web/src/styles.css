@@ -2147,3 +2147,132 @@ html[data-design][data-platform="macos"][data-theme="dark"] {
     backdrop-filter: none;
   }
 }
+
+/* =====================================================================
+   macOS Liquid Glass content (reference: Find My "People" card)
+   Translucent panel + cards with a bright rim, high-contrast text, and
+   tinted glass capsule buttons. macOS only.
+   ===================================================================== */
+html[data-design][data-platform="macos"][data-theme="dark"] {
+  --text: #ffffff;
+  --text-2: rgba(255, 255, 255, 0.78);
+  --glass-panel: rgba(30, 30, 36, 0.56);
+  --glass-card: rgba(255, 255, 255, 0.09);
+  --glass-rim: rgba(255, 255, 255, 0.18);
+  --glass-sep: rgba(255, 255, 255, 0.12);
+  --tint-bg: rgba(10, 132, 255, 0.3);
+  --tint-fg: #8fcbff;
+  --tint-rim: rgba(90, 170, 255, 0.45);
+}
+
+html[data-design][data-platform="macos"][data-theme="light"] {
+  --text: rgba(0, 0, 0, 0.9);
+  --text-2: rgba(0, 0, 0, 0.7);
+  --glass-panel: rgba(255, 255, 255, 0.6);
+  --glass-card: rgba(255, 255, 255, 0.62);
+  --glass-rim: rgba(255, 255, 255, 0.85);
+  --glass-sep: rgba(0, 0, 0, 0.1);
+  --tint-bg: rgba(10, 95, 216, 0.14);
+  --tint-fg: #0a4fb8;
+  --tint-rim: rgba(10, 95, 216, 0.3);
+}
+
+@media (min-width: 720px) {
+  html[data-platform="macos"] .content {
+    background: var(--glass-panel);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-rim);
+    border-radius: 26px;
+    box-shadow: inset 0 1px 0 var(--glass-rim), 0 10px 34px rgba(0, 0, 0, 0.22);
+  }
+
+  html[data-platform="macos"] .pane-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  html[data-platform="macos"] .role-grid,
+  html[data-platform="macos"] .pane-group {
+    background: var(--glass-card);
+    border: 1px solid var(--glass-rim);
+    border-radius: 22px;
+    box-shadow: inset 0 1px 0 var(--glass-rim), 0 4px 18px rgba(0, 0, 0, 0.14);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
+  }
+
+  html[data-platform="macos"] .card.action {
+    border-bottom-color: var(--glass-sep);
+  }
+
+  html[data-platform="macos"] .card.action .card-title {
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  html[data-platform="macos"] .card.action .card-desc,
+  html[data-platform="macos"] .subtitle,
+  html[data-platform="macos"] .field-hint,
+  html[data-platform="macos"] .chip {
+    color: var(--text-2);
+  }
+
+  /* tinted glass capsules, like the "16 min" pill */
+  html[data-platform="macos"] .cta,
+  html[data-platform="macos"] .btn:not(.tonal):not(.danger) {
+    min-height: 30px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--tint-rim);
+    background: var(--tint-bg);
+    color: var(--tint-fg);
+    font-weight: 650;
+    box-shadow: inset 0 1px 0 var(--glass-rim);
+  }
+
+  html[data-platform="macos"] .btn.tonal,
+  html[data-platform="macos"] .clip-actions button {
+    min-height: 30px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-rim);
+    background: var(--glass-card);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 var(--glass-rim);
+  }
+
+  html[data-platform="macos"] .segmented,
+  html[data-platform="macos"] .segmented button {
+    border-radius: 999px;
+  }
+
+  html[data-platform="macos"] .segmented {
+    background: var(--glass-card);
+    border: 1px solid var(--glass-rim);
+  }
+
+  html[data-platform="macos"] .segmented button {
+    color: var(--text);
+  }
+
+  html[data-platform="macos"] .segmented button[aria-checked="true"] {
+    background: var(--tint-bg);
+    color: var(--tint-fg);
+    box-shadow: inset 0 0 0 1px var(--tint-rim);
+  }
+
+  html[data-platform="macos"] input[type="text"],
+  html[data-platform="macos"] textarea {
+    border-radius: 12px;
+    border: 1px solid var(--glass-rim);
+    background: var(--glass-card);
+    color: var(--text);
+  }
+
+  html[data-platform="macos"] .group-title {
+    color: var(--text);
+  }
+}
