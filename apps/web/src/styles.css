@@ -2359,12 +2359,12 @@ html[data-platform="macos"] .screen {
 
 /* Window buttons live inside the glass sidebar header; everything else starts below them. */
 html[data-platform="macos"] .screen {
-  padding-top: 52px;
+  padding-top: 68px;
 }
 
 @media (min-width: 720px) {
   html[data-platform="macos"] .nav {
-    padding-top: 64px;
+    padding-top: 76px;
   }
 }
 
