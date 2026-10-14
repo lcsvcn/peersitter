@@ -7,9 +7,9 @@ cask "peersitter" do
   desc "Open-source, peer-to-peer camera monitoring with Apple Home (HomeKit) support"
   homepage "https://github.com/lcsvcn/peersitter"
 
-  depends_on :macos
   # Needed only for the optional HomeKit camera mode (not bundled in the app).
   depends_on formula: ["ffmpeg", "node"]
+  depends_on :macos
 
   app "PeerSitter.app"
 
