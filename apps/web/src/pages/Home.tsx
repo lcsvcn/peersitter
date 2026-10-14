@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import type { ClipStorage } from "@peersitter/core";
 import type { Settings } from "../settings";
 import { homekitAvailable } from "../lib/homekit";
@@ -33,12 +33,28 @@ interface Props {
 export default function Home({ settings, storage, onSettingsChange, onChooseCamera, onChooseViewer }: Props) {
   const [section, setSection] = useState<Section>("start");
 
-  const items: { id: Section; label: string; icon: ReactNode }[] = [
-    { id: "start", label: "Start", icon: <GridIcon size={22} /> },
-    { id: "recordings", label: "Recordings", icon: <FilmIcon size={22} /> },
-    ...(homekitAvailable() ? [{ id: "homekit" as const, label: "Apple Home", icon: <HouseIcon size={22} /> }] : []),
-    { id: "settings", label: "Settings", icon: <GearIcon size={22} /> },
+  const items: { id: Section; label: string; icon: ReactNode; group: string }[] = [
+    { id: "start", label: "Start", icon: <GridIcon size={22} />, group: "Monitor" },
+    { id: "recordings", label: "Recordings", icon: <FilmIcon size={22} />, group: "Monitor" },
+    ...(homekitAvailable()
+      ? [{ id: "homekit" as const, label: "Apple Home", icon: <HouseIcon size={22} />, group: "This Mac" }]
+      : []),
+    { id: "settings", label: "Settings", icon: <GearIcon size={22} />, group: "This Mac" },
   ];
+
+  // ⌘1…⌘4 jump between sections, like native Mac apps.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.metaKey || e.altKey || e.ctrlKey) return;
+      const item = items[Number(e.key) - 1];
+      if (item) {
+        e.preventDefault();
+        setSection(item.id);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   return (
     <div className="shell">
@@ -50,18 +66,27 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
           <span className="nav-brand-name">PeerSitter</span>
         </div>
         <div className="nav-items">
-          {items.map((item) => (
-            <button
-              key={item.id}
-              className="nav-item"
-              aria-current={section === item.id ? "page" : undefined}
-              onClick={() => setSection(item.id)}
-            >
-              <span className="nav-icon" data-tone={item.id}>
-                {item.icon}
-              </span>
-              <span className="nav-label">{item.label}</span>
-            </button>
+          {items.map((item, i) => (
+            <Fragment key={item.id}>
+              {item.group !== items[i - 1]?.group && (
+                <span className="nav-section" aria-hidden>
+                  {item.group}
+                </span>
+              )}
+              <button
+                className="nav-item"
+                aria-current={section === item.id ? "page" : undefined}
+                onClick={() => setSection(item.id)}
+              >
+                <span className="nav-icon" data-tone={item.id}>
+                  {item.icon}
+                </span>
+                <span className="nav-label">{item.label}</span>
+                <kbd className="nav-kbd" aria-hidden>
+                  ⌘{i + 1}
+                </kbd>
+              </button>
+            </Fragment>
           ))}
         </div>
         <p className="nav-footer">Open source · MIT</p>

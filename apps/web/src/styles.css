@@ -1872,3 +1872,278 @@ html[data-platform="macos"] .field:has(> .segmented) > .segmented {
     background: color-mix(in srgb, var(--text) 6%, transparent);
   }
 }
+
+/* =====================================================================
+   macOS refinements from the macOS design guide (ceorkm/macos-design-skill)
+   - Apple's own dark/light neutrals; opaque content, translucent sidebar
+   - subtle sidebar selection, monoline accent icons, small-caps sections
+   - 0.5px edge shadows instead of 1px borders, ⌘-key hints
+   ===================================================================== */
+.nav-section,
+.nav-kbd {
+  display: none;
+}
+
+html[data-design][data-platform="macos"][data-theme="light"] {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f0f0f3;
+  --surface-hover: #e8e8ed;
+  --outline-soft: rgba(0, 0, 0, 0.1);
+  --text: #1d1d1f;
+  --text-2: #5e5e63;
+}
+
+html[data-design][data-platform="macos"][data-theme="dark"] {
+  --bg: #1c1c1e;
+  --surface: #2c2c2e;
+  --surface-2: #3a3a3c;
+  --surface-hover: #444446;
+  --outline-soft: rgba(255, 255, 255, 0.1);
+  --text: #f5f5f7;
+  --text-2: #a1a1a6;
+}
+
+@media (min-width: 720px) {
+  html[data-platform="macos"] .content {
+    background: var(--bg); /* content stays solid for readability; only chrome is translucent */
+  }
+
+  html[data-platform="macos"] .nav {
+    background: color-mix(in srgb, var(--bg) 62%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  html[data-platform="macos"] .pane-title {
+    letter-spacing: -0.02em;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  html[data-platform="macos"] .nav-section {
+    display: block;
+    padding: 12px 8px 4px;
+    color: var(--text-2);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  html[data-platform="macos"] .nav-section:first-child {
+    padding-top: 0;
+  }
+
+  html[data-platform="macos"] .nav-item[aria-current="page"] {
+    background: color-mix(in srgb, var(--text) 10%, transparent);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  html[data-platform="macos"] .nav-icon,
+  html[data-platform="macos"] .nav-icon[data-tone] {
+    width: 18px;
+    height: 18px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--accent);
+  }
+
+  html[data-platform="macos"] .nav-item .nav-icon svg {
+    width: 16px;
+    height: 16px;
+    color: var(--accent);
+  }
+
+  html[data-platform="macos"] .nav-kbd {
+    display: inline;
+    margin-left: auto;
+    color: var(--text-2);
+    font: inherit;
+    font-size: 0.8125rem;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease);
+  }
+
+  html[data-platform="macos"] .nav-item:hover .nav-kbd,
+  html[data-platform="macos"] .nav-item:focus-visible .nav-kbd {
+    opacity: 1;
+  }
+
+  /* 0.5px edge definition instead of heavy borders */
+  html[data-platform="macos"] .pane-group,
+  html[data-platform="macos"] .role-grid {
+    border: 0;
+    background: var(--surface);
+    box-shadow: 0 0 0 0.5px var(--outline-soft), 0 1px 2px rgba(0, 0, 0, 0.08);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+
+/* =====================================================================
+   AppKit-style controls + real system colours (macOS only)
+   WebKit exposes the live system palette (incl. the user's accent colour
+   and Light/Dark) via -apple-system-* / AccentColor keywords.
+   ===================================================================== */
+@supports (color: -apple-system-label) {
+  html[data-design][data-platform="macos"] {
+    --text: -apple-system-label;
+    --text-2: -apple-system-secondary-label;
+    --outline-soft: -apple-system-separator;
+    --accent: AccentColor;
+    --on-accent: AccentColorText;
+    --sel: AccentColor;
+  }
+}
+
+@media (min-width: 720px) {
+  /* chips -> plain footnote line, not web badges */
+  html[data-platform="macos"] .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  html[data-platform="macos"] .chip {
+    min-height: 0;
+    padding: 0;
+    background: none;
+    color: var(--text-2);
+    font-size: 0.9231rem;
+    font-weight: 400;
+  }
+
+  html[data-platform="macos"] .chip svg {
+    display: none;
+  }
+
+  html[data-platform="macos"] .chip + .chip::before {
+    content: "·";
+    margin: 0 8px;
+  }
+
+  /* push buttons: rounded rectangles, not capsules */
+  html[data-platform="macos"] .btn,
+  html[data-platform="macos"] .cta,
+  html[data-platform="macos"] .clip-actions button {
+    min-height: 24px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.25), 0 0.5px 1px rgba(0, 0, 0, 0.2);
+  }
+
+  /* default button = accent filled; everything else = standard bordered push button */
+  html[data-platform="macos"] .btn.tonal,
+  html[data-platform="macos"] .clip-actions button {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  html[data-platform="macos"] .btn.tonal:hover,
+  html[data-platform="macos"] .clip-actions button:hover {
+    background: var(--surface-hover);
+    filter: none;
+  }
+
+  html[data-platform="macos"] .segmented,
+  html[data-platform="macos"] .segmented button {
+    border-radius: 6px;
+  }
+
+  html[data-platform="macos"] input[type="text"],
+  html[data-platform="macos"] textarea {
+    border-radius: 6px;
+    border-color: var(--outline-soft);
+    background: var(--surface-2);
+  }
+
+  html[data-platform="macos"] .card.action .card-icon {
+    border-radius: 8px;
+  }
+
+  html[data-platform="macos"] .support {
+    margin-top: 4px;
+  }
+}
+
+/* =====================================================================
+   Liquid Glass window layout (macOS 26 "Tahoe" style)
+   A floating, rounded glass sidebar inset in the window, and the content as
+   its own floating panel — the desktop shows through the gaps.
+   ===================================================================== */
+@media (min-width: 720px) {
+  html[data-platform="macos"] .shell {
+    gap: 8px;
+    padding: 8px;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  html[data-platform="macos"] .nav {
+    top: 0;
+    height: 100%;
+    margin: 0;
+    width: 216px;
+    padding: 44px 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.34);
+    -webkit-backdrop-filter: blur(32px) saturate(190%);
+    backdrop-filter: blur(32px) saturate(190%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 8px 28px rgba(0, 0, 0, 0.14);
+  }
+
+  html[data-platform="macos"][data-theme="dark"] .nav {
+    background: rgba(48, 48, 56, 0.42);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  html[data-platform="macos"] .nav-item {
+    border-radius: 11px;
+  }
+
+  html[data-platform="macos"] .nav-item[aria-current="page"] {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text);
+  }
+
+  html[data-platform="macos"][data-theme="dark"] .nav-item[aria-current="page"] {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  html[data-platform="macos"] .nav-icon,
+  html[data-platform="macos"] .nav-icon[data-tone],
+  html[data-platform="macos"] .nav-item .nav-icon svg {
+    color: var(--text-2);
+  }
+
+  /* content = its own floating panel with its own scroll */
+  html[data-platform="macos"] .content {
+    height: 100%;
+    overflow-y: auto;
+    border-radius: 20px;
+    background: var(--bg);
+    box-shadow: 0 0 0 0.5px var(--outline-soft), 0 8px 30px rgba(0, 0, 0, 0.16);
+    padding-bottom: 24px;
+  }
+
+  html[data-platform="macos"] .pane-title {
+    border-bottom: 0;
+    padding: 20px 24px 8px;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
