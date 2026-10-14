@@ -38,6 +38,22 @@ apps/homekit/        HomeKit bridge: shows a Mac as a camera in the Apple Home a
 docs/ARCHITECTURE.md how pairing, encryption, and NAT traversal work
 ```
 
+## Install on macOS (Homebrew)
+
+```sh
+brew tap lcsvcn/peersitter https://github.com/lcsvcn/peersitter
+brew install --cask peersitter
+```
+
+This also installs `node` and `ffmpeg`, used by the optional Apple Home
+camera mode (see [`apps/homekit`](apps/homekit/README.md)). The app is
+unsigned; if macOS blocks it, run
+`xattr -dr com.apple.quarantine /Applications/PeerSitter.app`.
+
+Releases are cut by pushing a tag (`git tag v0.1.0 && git push --tags`):
+`.github/workflows/release-macos.yml` builds a universal (Apple Silicon +
+Intel) app, publishes it, and updates the cask's version and checksum.
+
 ## Quickstart (web, two browser tabs/devices)
 
 ```sh

@@ -1,0 +1,64 @@
+name: Release macOS app
+
+# Push a tag like v0.1.0 to build the universal macOS app, publish it as a
+# GitHub Release, and update Casks/peersitter.rb so `brew install` picks it up.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main # tag may be older than main; the cask edit must land on main
+          fetch-depth: 0
+      - name: Check out the tagged commit for the build
+        run: git checkout "$GITHUB_REF_NAME"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - run: npm ci
+      - run: npm ci
+        working-directory: apps/desktop
+
+      - name: Build universal app
+        working-directory: apps/desktop
+        run: npx tauri build --target universal-apple-darwin --bundles app
+
+      - name: Zip
+        id: zip
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ZIP="PeerSitter-${VERSION}-macos.zip"
+          ditto -c -k --keepParent \
+            apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/PeerSitter.app "$ZIP"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "sha=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "${{ steps.zip.outputs.zip }}" --title "PeerSitter $GITHUB_REF_NAME" --generate-notes
+
+      - name: Update cask on main
+        run: |
+          git fetch origin main && git checkout -q main && git pull -q --ff-only origin main
+          sed -i '' -E \
+            -e 's/^  version ".*"/  version "${{ steps.zip.outputs.version }}"/' \
+            -e 's/^  sha256 .*/  sha256 "${{ steps.zip.outputs.sha }}"/' \
+            Casks/peersitter.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update cask to ${GITHUB_REF_NAME}"
+          git push origin main
