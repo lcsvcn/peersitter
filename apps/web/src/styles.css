@@ -1522,3 +1522,240 @@ html[data-desktop="true"] .nav {
   color: var(--on-warning-container);
   font-size: 0.9375rem;
 }
+
+/* =====================================================================
+   Apple platforms (data-design="glass"): native macOS / iOS look
+   ---------------------------------------------------------------------
+   Floating glass sidebar (Mac) / floating tab bar (iOS), grouped list
+   rows with System-Settings-style icon tiles, and — on macOS — the
+   compact control density of AppKit (13px type, ~28px controls) instead
+   of touch-sized web controls.
+   ===================================================================== */
+html[data-platform="macos"] {
+  font-size: 13px;
+  --tap: 28px;
+  --title-size: 1.75rem;
+  --space-4: 14px;
+}
+
+/* --- floating glass sidebar (macOS) --- */
+html[data-platform="macos"] .nav {
+  top: 8px;
+  height: calc(100vh - 16px);
+  margin: 8px 0 8px 8px;
+  width: 208px;
+  padding: 44px 8px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: var(--shadow), var(--glass-highlight);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+html[data-platform="macos"] #root {
+  padding-top: 0;
+}
+
+html[data-platform="macos"] .nav-brand,
+html[data-platform="macos"] .nav-footer {
+  display: none;
+}
+
+html[data-platform="macos"] .nav-items {
+  gap: 2px;
+}
+
+html[data-platform="macos"] .nav-item {
+  min-height: 30px;
+  padding: 0 10px;
+  gap: 8px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+html[data-platform="macos"] .nav-item .nav-icon svg {
+  width: 17px;
+  height: 17px;
+  color: var(--accent);
+}
+
+html[data-design="glass"] .nav-item[aria-current="page"] {
+  background: color-mix(in srgb, var(--text) 13%, transparent);
+  color: var(--text);
+}
+
+html[data-platform="macos"] .content {
+  padding: 44px 24px 24px 20px;
+}
+
+html[data-platform="macos"] .pane-stack {
+  max-width: 640px;
+  margin: 0;
+  gap: 14px;
+}
+
+/* --- grouped list rows (all Apple platforms) --- */
+[data-design="glass"] .role-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow), var(--glass-highlight);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+[data-design="glass"] .card.action {
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: 64px;
+  padding: 10px 14px;
+  gap: 12px;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--outline-soft);
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+[data-design="glass"] .card.action:last-child {
+  border-bottom: 0;
+}
+
+[data-design="glass"] .card.action .card-body {
+  flex: 1;
+  flex-basis: auto;
+}
+
+[data-design="glass"] .card.action .card-title {
+  font-size: 1.0625rem;
+}
+
+[data-design="glass"] .card.action .card-desc {
+  font-size: 0.875rem;
+}
+
+[data-design="glass"] .card.action .card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(160deg, #3d9bff, #0a6cf0);
+}
+
+[data-design="glass"] .card.action .card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+[data-design="glass"] .card-icon[data-tone="viewer"] {
+  background: linear-gradient(160deg, #4cd964, #1fa83b);
+}
+
+[data-design="glass"] .cta {
+  min-height: 28px;
+  padding: 0 14px;
+  font-size: 0.9375rem;
+}
+
+[data-design="glass"] .hero .title {
+  font-weight: 700;
+}
+
+html[data-platform="macos"] .hero .subtitle {
+  font-size: 1rem;
+  max-width: 52ch;
+}
+
+/* --- grouped settings (macOS System Settings feel) --- */
+html[data-platform="macos"] .pane-group {
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+
+html[data-platform="macos"] .group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+html[data-platform="macos"] input[type="text"],
+html[data-platform="macos"] textarea {
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+html[data-platform="macos"] input[type="range"] {
+  height: 20px;
+}
+
+html[data-platform="macos"] .segmented {
+  padding: 2px;
+}
+
+html[data-platform="macos"] .segmented button {
+  min-height: 24px;
+  font-size: 1rem;
+}
+
+html[data-platform="macos"] .btn {
+  padding: 0 14px;
+  font-size: 1rem;
+}
+
+/* --- iOS: floating glass tab bar, rows sized for touch --- */
+@media (max-width: 719px) {
+  [data-design="glass"] .nav {
+    inset: auto 12px calc(8px + var(--safe-bottom)) 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    padding: 6px;
+    box-shadow: var(--shadow), var(--glass-highlight);
+  }
+
+  [data-design="glass"] .nav-item {
+    border-radius: 26px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  [data-design="glass"] .nav-item[aria-current="page"] {
+    background: var(--accent-container);
+    color: var(--on-accent-container);
+  }
+}
+
+/* macOS forms: label on the left, compact control on the right (System Settings layout). */
+html[data-platform="macos"] .field:has(> .segmented) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: var(--space-4);
+}
+
+html[data-platform="macos"] .field:has(> .segmented) > .field-hint {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+html[data-platform="macos"] .field:has(> .segmented) > .segmented {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 240px;
+}
+
+.support {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}

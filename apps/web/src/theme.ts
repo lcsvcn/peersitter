@@ -27,6 +27,18 @@ export function detectDesign(nav: Pick<Navigator, "userAgent" | "platform" | "ma
   return "material";
 }
 
+export type Platform = "macos" | "ios" | "android" | "web";
+
+/** Which native shell (if any) we're running in; drives density and chrome, not colours. */
+export function detectPlatform(): Platform {
+  const win = window as unknown as { __TAURI__?: unknown; Capacitor?: { getPlatform?: () => string } };
+  if (win.__TAURI__ && /Mac/i.test(navigator.platform)) return "macos";
+  const cap = win.Capacitor?.getPlatform?.();
+  if (cap === "ios") return "ios";
+  if (cap === "android") return "android";
+  return "web";
+}
+
 export function resolveDesign(choice: DesignChoice): Design {
   return choice === "auto" ? detectDesign() : choice;
 }
@@ -57,6 +69,7 @@ export function applyTheme(appearance: Appearance, designChoice: DesignChoice, s
   // Inside the macOS desktop shell the window itself is translucent
   // (native vibrancy), so let the glass sample the desktop instead of a flat fill.
   root.dataset.nativeGlass = design === "glass" && isTauri() ? "true" : "false";
+  root.dataset.platform = detectPlatform();
   root.dataset.desktop = isTauri() ? "true" : "false";
   if (isTauri()) ensureDragStrip();
   let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');

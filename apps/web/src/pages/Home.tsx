@@ -3,6 +3,7 @@ import type { ClipStorage } from "@peersitter/core";
 import type { Settings } from "../settings";
 import { homekitAvailable } from "../lib/homekit";
 import HomeKitPanel from "./HomeKitPanel";
+import { donationAvailable, openDonationPage } from "../lib/donate";
 import SettingsPane from "./SettingsPane";
 import Gallery from "./Gallery";
 import {
@@ -12,6 +13,8 @@ import {
   FilmIcon,
   GearIcon,
   GridIcon,
+  HardDriveIcon,
+  HeartIcon,
   HouseIcon,
   LockIcon,
   ShieldCheckIcon,
@@ -81,12 +84,15 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
                 <span className="chip">
                   <ActivityIcon size={16} /> Records on motion
                 </span>
+                <span className="chip">
+                  <HardDriveIcon size={16} /> Data stays on your device
+                </span>
               </div>
             </section>
 
             <div className="role-grid">
               <button className="card action" onClick={onChooseCamera}>
-                <span className="card-icon" aria-hidden>
+                <span className="card-icon" data-tone="camera" aria-hidden>
                   <CameraIcon size={28} />
                 </span>
                 <span className="card-body">
@@ -98,7 +104,7 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
                 </span>
               </button>
               <button className="card action" onClick={onChooseViewer}>
-                <span className="card-icon" aria-hidden>
+                <span className="card-icon" data-tone="viewer" aria-hidden>
                   <EyeIcon size={28} />
                 </span>
                 <span className="card-body">
@@ -110,6 +116,15 @@ export default function Home({ settings, storage, onSettingsChange, onChooseCame
                 </span>
               </button>
             </div>
+
+            {donationAvailable() && (
+              <div className="support">
+                <button className="btn tonal" onClick={openDonationPage}>
+                  <HeartIcon size={18} /> Support development
+                </button>
+                <span className="field-hint">PeerSitter is free and open source. Donations keep it going.</span>
+              </div>
+            )}
           </div>
         )}
 
