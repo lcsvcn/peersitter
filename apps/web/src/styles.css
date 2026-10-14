@@ -2276,3 +2276,119 @@ html[data-design][data-platform="macos"][data-theme="light"] {
     color: var(--text);
   }
 }
+
+/* =====================================================================
+   macOS: window-button safe area, Maps-style sizing and tint
+   ===================================================================== */
+html[data-design][data-platform="macos"][data-theme="dark"] {
+  --tint-bg: rgba(40, 120, 200, 0.34);
+  --tint-fg: #4cc4ff;
+  --tint-rim: rgba(120, 200, 255, 0.18);
+  --glass-select: rgba(255, 255, 255, 0.2);
+}
+
+html[data-design][data-platform="macos"][data-theme="light"] {
+  --tint-bg: rgba(0, 122, 255, 0.14);
+  --tint-fg: #0067c0;
+  --tint-rim: rgba(0, 122, 255, 0.22);
+  --glass-select: rgba(255, 255, 255, 0.85);
+}
+
+/* Screens without the sidebar (Camera, Viewer): keep content clear of the traffic lights. */
+html[data-platform="macos"] .screen {
+  padding-top: 52px;
+}
+
+@media (min-width: 720px) {
+  /* sidebar: lights live inside the glass in their own header row; list starts below it */
+  html[data-platform="macos"] .nav {
+    padding: 64px 12px 14px;
+    border-radius: 30px;
+  }
+
+  html[data-platform="macos"] .nav-item {
+    min-height: 36px;
+    gap: 10px;
+    padding: 0 10px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  html[data-platform="macos"] .nav-icon,
+  html[data-platform="macos"] .nav-icon[data-tone],
+  html[data-platform="macos"] .nav-item .nav-icon svg {
+    color: var(--accent);
+  }
+
+  html[data-platform="macos"] .nav-icon,
+  html[data-platform="macos"] .nav-icon[data-tone] {
+    width: 22px;
+    height: 22px;
+  }
+
+  html[data-platform="macos"] .nav-item .nav-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  html[data-platform="macos"] .nav-section {
+    padding: 16px 10px 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* the selected state is a lighter glass pill, in segmented controls too */
+  html[data-platform="macos"] .segmented button[aria-checked="true"] {
+    background: var(--glass-select);
+    color: var(--text);
+    box-shadow: inset 0 1px 0 var(--glass-rim), 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  /* tinted capsule (Start / Scan): saturated sky blue on steel-blue glass, no hard outline */
+  html[data-platform="macos"] .cta,
+  html[data-platform="macos"] .btn:not(.tonal):not(.danger) {
+    border: 0;
+    background: var(--tint-bg);
+    color: var(--tint-fg);
+    box-shadow: inset 0 0 0 1px var(--tint-rim);
+  }
+}
+
+/* No window buttons on macOS (hidden natively): use the whole window, keep a thin drag strip clear. */
+html[data-platform="macos"] .screen {
+  padding-top: 40px;
+}
+
+@media (min-width: 720px) {
+  html[data-platform="macos"] .nav {
+    padding-top: 28px;
+  }
+}
+
+/* Action hierarchy (macOS): ONE solid-blue primary; every other action is transparent glass. */
+@media (min-width: 720px) {
+  html[data-platform="macos"] .cta,
+  html[data-platform="macos"] .btn:not(.tonal):not(.danger) {
+    background: linear-gradient(180deg, #2f86ff, #0a6cff);
+    color: #fff;
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 20, 80, 0.35);
+  }
+
+  html[data-platform="macos"] .btn.tonal,
+  html[data-platform="macos"] .clip-actions button {
+    background: transparent;
+    border: 1px solid var(--glass-rim);
+    box-shadow: inset 0 1px 0 var(--glass-rim);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+  }
+
+  html[data-platform="macos"] .btn.tonal:hover,
+  html[data-platform="macos"] .clip-actions button:hover {
+    background: var(--glass-card);
+  }
+}
