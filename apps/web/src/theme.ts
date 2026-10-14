@@ -7,18 +7,23 @@ export type Design = "glass" | "material";
 /**
  * Two platform-native design languages share one set of components:
  *  - "glass": Apple's Liquid Glass look (translucent, blurred surfaces,
- *    capsule controls, SF type) — default on iOS, iPadOS and macOS.
+ *    capsule controls, SF type) — default in the native macOS and iOS apps.
  *  - "material": Material 3 / Material You (tonal surfaces, filled and
- *    tonal buttons, Roboto) — default on Android, the web and Windows/Linux.
+ *    tonal buttons, Roboto) — default on Android, in any web browser, and on Windows/Linux.
  * Both support light and dark. Everything is driven by two attributes on
  * <html> (data-design, data-theme) that select CSS custom properties.
  */
 export function detectDesign(nav: Pick<Navigator, "userAgent" | "platform" | "maxTouchPoints"> = navigator): Design {
-  const ua = nav.userAgent;
-  if (/iPhone|iPad|iPod/.test(ua)) return "glass";
-  // iPadOS 13+ reports itself as a Mac; touch support is the tell. Real Macs
-  // (Safari, or the Tauri/WKWebView desktop app) are glass too.
-  if (/Mac/i.test(nav.platform) || /Macintosh/.test(ua)) return "glass";
+  // Liquid Glass is the look of the native macOS app (Tauri) and the native
+  // iOS app (Capacitor). Everything else — Android, and any web browser,
+  // including Safari on a Mac or iPhone — gets Material You.
+  const win = window as unknown as {
+    __TAURI__?: unknown;
+    Capacitor?: { getPlatform?: () => string };
+  };
+  const isMac = /Mac/i.test(nav.platform) || /Macintosh/.test(nav.userAgent);
+  if (win.__TAURI__ && isMac) return "glass";
+  if (win.Capacitor?.getPlatform?.() === "ios") return "glass";
   return "material";
 }
 

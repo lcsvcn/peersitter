@@ -37,7 +37,7 @@ export default function SettingsPane({ settings, onSettingsChange }: Props) {
             <PaletteIcon size={16} style={{ verticalAlign: "-3px" }} /> Design style
           </span>
           <span className="field-hint">
-            Auto uses Liquid Glass on iPhone, iPad and Mac, and Material You everywhere else.
+            Auto uses Liquid Glass in the Mac and iOS apps, and Material You on Android and the web.
           </span>
           <SegmentedControl
             label="Design style"
