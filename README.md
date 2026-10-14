@@ -38,6 +38,12 @@ apps/homekit/        HomeKit bridge: shows a Mac as a camera in the Apple Home a
 docs/ARCHITECTURE.md how pairing, encryption, and NAT traversal work
 ```
 
+## Watching from outside your home
+
+Needs a public `wss://` signaling address (and ideally a TURN relay) — video
+stays peer-to-peer and encrypted. Fastest path: `npm run remote` on the
+Camera's Mac. Full guide: [`docs/REMOTE_ACCESS.md`](docs/REMOTE_ACCESS.md).
+
 ## Quickstart (web, two browser tabs/devices)
 
 ```sh

@@ -14,6 +14,8 @@ export interface Settings {
   design: DesignChoice;
   /** Material You seed: "system" (Android wallpaper when available), or a #rrggbb colour. */
   seedColor: string;
+  /** Extra STUN/TURN servers, one per line (see parseIceServers). */
+  iceServers: string;
 }
 
 const KEY = "peersitter:settings";
@@ -26,6 +28,7 @@ const DEFAULTS: Settings = {
   appearance: "auto",
   design: "auto",
   seedColor: "system",
+  iceServers: "",
 };
 
 export function loadSettings(): Settings {

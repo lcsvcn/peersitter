@@ -155,11 +155,11 @@ Pure P2P can't always punch through NAT/firewalls on its own:
 - **TURN** is only needed as a fallback for restrictive networks
   (symmetric NAT, some corporate firewalls) where direct punching fails.
   A TURN relay forwards the already-encrypted media bytes — it still can't
-  decrypt them — but it does cost bandwidth. This repo ships without one
-  configured, so those edge-case networks may fail to connect; self-host
-  [coturn](https://github.com/coturn/coturn) (free on a small VPS) and add
-  it to `DEFAULT_ICE_SERVERS` in `packages/core/src/peerConnection.ts` if
-  you need that reliability.
+  decrypt them — but it does cost bandwidth. This repo ships without one,
+  so those edge-case networks may fail to connect; self-host
+  [coturn](https://github.com/coturn/coturn) and add it under
+  **Settings → Relay (TURN) servers** (see [`REMOTE_ACCESS.md`](REMOTE_ACCESS.md),
+  which also covers exposing the signaling server for use away from home).
 
 ## Recording and storage
 

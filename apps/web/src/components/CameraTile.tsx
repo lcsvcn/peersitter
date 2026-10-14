@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { SignalingClient, PeerLink, type ClipStorage, type PairingPayload } from "@peersitter/core";
+import { loadSettings } from "../settings";
+import { SignalingClient, PeerLink, parseIceServers, type ClipStorage, type PairingPayload } from "@peersitter/core";
 import { useMotionRecording } from "../hooks/useMotionRecording";
 import { ExpandIcon, ShrinkIcon, XIcon } from "./Icon";
 
@@ -67,6 +68,7 @@ export default function CameraTile({
         if (closed) return;
         const peer = new PeerLink({
           signaling,
+          iceServers: parseIceServers(loadSettings().iceServers),
           events: {
             onRemoteStream: (stream) => {
               setRemoteStream(stream);

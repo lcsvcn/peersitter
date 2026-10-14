@@ -1507,3 +1507,18 @@ html[data-desktop="true"] .nav {
   height: calc(100vh - 28px);
   padding-top: var(--space-4);
 }
+
+/* Settings: connection test row + warning notice */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.notice.warn {
+  padding: var(--space-3) var(--space-4);
+  background: var(--warning-container);
+  color: var(--on-warning-container);
+  font-size: 0.9375rem;
+}

@@ -5,3 +5,4 @@ export * from "./peerConnection";
 export * from "./recorder";
 export * from "./motionDetector";
 export * from "./storageManager";
+export * from "./iceServers";

@@ -8,7 +8,9 @@ import {
   buildPairingPayload,
   encodePairingPayload,
   type ClipStorage,
+  parseIceServers,
 } from "@peersitter/core";
+import { loadSettings } from "../settings";
 import { useMotionRecording } from "../hooks/useMotionRecording";
 import ScreenHeader from "../components/ScreenHeader";
 import { CopyIcon, UsersIcon } from "../components/Icon";
@@ -142,6 +144,7 @@ export default function Camera({ signalingUrl, cameraName, storage, motionSensit
             setViewerState(peerId, "connecting");
             const link = new PeerLink({
               signaling: current.channelFor(peerId),
+              iceServers: parseIceServers(loadSettings().iceServers),
               certificate,
               events: {
                 onStateChange: (state) => {

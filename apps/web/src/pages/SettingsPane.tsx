@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { Settings } from "../settings";
+import { isLocalOnlyUrl, testSignaling, type TestResult } from "../lib/connection";
 import { MoonIcon, PaletteIcon, SunIcon } from "../components/Icon";
 import SegmentedControl from "../components/SegmentedControl";
 import { SEED_PRESETS, systemAccent } from "../dynamicColor";
@@ -10,6 +12,8 @@ interface Props {
 }
 
 export default function SettingsPane({ settings, onSettingsChange }: Props) {
+  const [test, setTest] = useState<TestResult | "testing" | null>(null);
+  const localOnly = isLocalOnlyUrl(settings.signalingUrl);
   const material = resolveDesign(settings.design) === "material";
   const hasSystemAccent = systemAccent() !== null;
   return (
@@ -141,20 +145,66 @@ export default function SettingsPane({ settings, onSettingsChange }: Props) {
       </div>
 
       <div className="surface group pane-group">
-        <h3 className="group-title">Connection</h3>
+        <h3 className="group-title">Connection &amp; remote access</h3>
         <label className="field">
           Signaling server
           <span className="field-hint">
-            Only used to introduce the devices — it never sees audio, video, or recordings. Point it at your
-            own self-hosted instance (see <code>signaling-server/</code>) for full independence.
+            Only used to introduce the devices — it never sees audio, video, or recordings. To watch from
+            outside your home it must be a public <code>wss://</code> address; the Viewer picks it up from the
+            Camera's QR code, so only the Camera needs it. Setup guide: <code>docs/REMOTE_ACCESS.md</code>.
           </span>
           <input
             type="text"
             value={settings.signalingUrl}
-            onChange={(e) => onSettingsChange({ signalingUrl: e.target.value })}
+            onChange={(e) => {
+              setTest(null);
+              onSettingsChange({ signalingUrl: e.target.value });
+            }}
             spellCheck={false}
             autoCapitalize="off"
             autoCorrect="off"
+          />
+        </label>
+        {localOnly && (
+          <p className="notice warn" role="status">
+            This address only works on this device or your home network. Viewers away from home can't reach
+            it — use a public wss:// server.
+          </p>
+        )}
+        <div className="row">
+          <button
+            className="btn tonal"
+            disabled={test === "testing"}
+            onClick={async () => {
+              setTest("testing");
+              setTest(await testSignaling(settings.signalingUrl));
+            }}
+          >
+            {test === "testing" ? "Testing…" : "Test connection"}
+          </button>
+          {test && test !== "testing" && (
+            <span className="status" role="status">
+              {test.ok ? `✓ Reachable (${test.ms} ms)` : test.error}
+            </span>
+          )}
+        </div>
+
+        <label className="field">
+          Relay (TURN) servers
+          <span className="field-hint">
+            Optional but recommended for remote viewing: on mobile data and some networks a direct
+            connection is impossible, and a relay carries the (still end-to-end encrypted) video instead. One
+            per line: <code>turns:host:443?transport=tcp, username, password</code>. Set the same on each
+            device.
+          </span>
+          <textarea
+            rows={3}
+            value={settings.iceServers}
+            onChange={(e) => onSettingsChange({ iceServers: e.target.value })}
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
+            placeholder="turn:turn.example.org:3478, user, password"
           />
         </label>
       </div>
