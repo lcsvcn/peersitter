@@ -6,7 +6,7 @@ import {
   homekitStatus,
   type HomeKitStatus,
 } from "../lib/homekit";
-import { ChevronRightIcon, ShieldCheckIcon } from "../components/Icon";
+import { HouseIcon } from "../components/Icon";
 
 export default function HomeKitPanel() {
   const [status, setStatus] = useState<HomeKitStatus>({ running: false });
@@ -47,23 +47,18 @@ export default function HomeKitPanel() {
   const ready = status.running && !status.starting && status.pincode;
 
   return (
-    <details className="settings surface" open={status.running}>
-      <summary>
-        <span className="card-icon" aria-hidden>
-          <ShieldCheckIcon size={26} />
-        </span>
-        <span className="card-body">
-          <span className="card-title">Apple Home (HomeKit)</span>
-          <span className="card-desc">Show this Mac as a camera in the Home app</span>
-        </span>
-        <ChevronRightIcon className="card-chevron" size={20} />
-      </summary>
-
-      <div className="settings-body">
-        <span className="field-hint">
-          Show this Mac as a camera in the Home app, like a real HomeKit camera: live view, snapshots,
-          and motion events. Runs locally — the stream goes straight to your Home hub, not through us.
-        </span>
+    <div className="pane-stack">
+      <h2 className="pane-title">Apple Home</h2>
+      <div className="surface group pane-group">
+        <div className="pane-intro">
+          <span className="card-icon" aria-hidden>
+            <HouseIcon size={26} />
+          </span>
+          <p className="subtitle">
+            Show this Mac as a camera in the Home app, like a real HomeKit camera: live view, snapshots,
+            and motion events. Runs locally — the stream goes straight to your Home hub, not through us.
+          </p>
+        </div>
 
         <button className={`btn${status.running ? " tonal" : ""}`} onClick={toggle}>
           {status.running ? "Stop HomeKit camera" : "Enable HomeKit camera"}
@@ -95,6 +90,6 @@ export default function HomeKitPanel() {
           </>
         )}
       </div>
-    </details>
+    </div>
   );
 }

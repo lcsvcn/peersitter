@@ -13,7 +13,8 @@
     "build:web": "npm run build --workspace=apps/web",
     "build:signal": "npm run build --workspace=signaling-server",
     "test:signal": "npm test --workspace=signaling-server",
-    "test:multi": "npm run test:e2e:multi --workspace=apps/web"
+    "test:multi": "npm run test:e2e:multi --workspace=apps/web",
+    "remote": "bash scripts/remote.sh"
   },
   "license": "MIT"
 }

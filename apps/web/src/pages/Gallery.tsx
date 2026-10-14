@@ -6,7 +6,8 @@ import { DownloadIcon, FilmIcon, HardDriveIcon, PlayIcon, TrashIcon } from "../c
 
 interface Props {
   storage: ClipStorage;
-  onBack: () => void;
+  /** Omit when rendered inside the Home shell (no back button / own page chrome). */
+  onBack?: () => void;
 }
 
 function formatBytes(bytes: number): string {
@@ -56,8 +57,8 @@ export default function Gallery({ storage, onBack }: Props) {
   const pct = cap > 0 ? Math.min(100, Math.round((used / cap) * 100)) : 0;
 
   return (
-    <div className="screen">
-      <ScreenHeader title="Recordings" onBack={onBack} />
+    <div className={onBack ? "screen" : "pane-stack"}>
+      {onBack ? <ScreenHeader title="Recordings" onBack={onBack} /> : <h2 className="pane-title">Recordings</h2>}
 
       <div className="surface group" style={{ padding: "var(--space-4)", display: "grid", gap: "var(--space-3)" }}>
         <div className="meter" role="meter" aria-label="Storage used" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>

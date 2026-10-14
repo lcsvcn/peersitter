@@ -12,16 +12,32 @@
     "windows": [
       {
         "title": "PeerSitter",
-        "width": 800,
-        "height": 600,
+        "width": 1000,
+        "height": 720,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "minWidth": 420,
+        "minHeight": 560,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "windowEffects": {
+          "effects": [
+            "underWindowBackground"
+          ],
+          "state": "followsWindowActiveState"
+        },
+        "trafficLightPosition": {
+          "x": 36,
+          "y": 36
+        }
       }
     ],
     "security": {
       "csp": null
     },
-    "withGlobalTauri": true
+    "withGlobalTauri": true,
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

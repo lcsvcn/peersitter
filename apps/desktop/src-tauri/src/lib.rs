@@ -2,11 +2,21 @@ mod homekit;
 
 use tauri::Manager;
 
+/// Opens an https link in the default browser (a plain <a> would navigate the app window itself).
+#[tauri::command]
+fn open_external(url: String) -> Result<(), String> {
+  if !url.starts_with("https://") {
+    return Err("only https links can be opened".into());
+  }
+  std::process::Command::new("/usr/bin/open").arg(&url).spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .manage(homekit::HomeKit::default())
     .invoke_handler(tauri::generate_handler![
+      open_external,
       homekit::homekit_start,
       homekit::homekit_stop,
       homekit::homekit_status,

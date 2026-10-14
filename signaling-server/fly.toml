@@ -1,0 +1,16 @@
+# fly launch --copy-config --no-deploy   (rename `app` first), then: fly deploy
+app = "peersitter-signal-CHANGE-ME"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8787"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0

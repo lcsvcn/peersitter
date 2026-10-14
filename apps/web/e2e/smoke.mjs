@@ -130,7 +130,7 @@ async function main() {
     await sleep(1000); // let the async stop()+saveClip() settle
 
     await viewerPage.getByRole("button", { name: "Back" }).click();
-    await viewerPage.locator("button.card", { hasText: "Recordings" }).click();
+    await viewerPage.getByRole("button", { name: "Recordings" }).click();
     const clipRows = viewerPage.locator(".clip-row");
     await clipRows.first().waitFor({ timeout: 10000 });
     const clipCount = await clipRows.count();
