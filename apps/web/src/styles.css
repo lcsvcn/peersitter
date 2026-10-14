@@ -2357,14 +2357,14 @@ html[data-platform="macos"] .screen {
   }
 }
 
-/* No window buttons on macOS (hidden natively): use the whole window, keep a thin drag strip clear. */
+/* Window buttons live inside the glass sidebar header; everything else starts below them. */
 html[data-platform="macos"] .screen {
-  padding-top: 40px;
+  padding-top: 52px;
 }
 
 @media (min-width: 720px) {
   html[data-platform="macos"] .nav {
-    padding-top: 28px;
+    padding-top: 64px;
   }
 }
 

@@ -26,6 +26,10 @@
             "underWindowBackground"
           ],
           "state": "followsWindowActiveState"
+        },
+        "trafficLightPosition": {
+          "x": 24,
+          "y": 24
         }
       }
     ],
