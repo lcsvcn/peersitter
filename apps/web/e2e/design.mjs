@@ -141,8 +141,9 @@ try {
         // viewer
         const viewer = await mk(null);
         await shot(viewer, "1-home");
-        await viewer.getByText("Settings", { exact: true }).click();
+        await viewer.getByRole("button", { name: "Settings" }).click();
         await shot(viewer, "2-settings");
+        await viewer.getByRole("button", { name: "Start" }).click();
         await viewer.getByText("Be a Viewer").click();
         await shot(viewer, "3-viewer-scan");
         for (const [i, code] of codes.entries()) {
@@ -158,7 +159,7 @@ try {
         await shot(cams[0], "5-camera");
 
         await viewer.getByRole("button", { name: "Back" }).click();
-        await viewer.getByText("Recordings").first().click();
+        await viewer.getByRole("button", { name: "Recordings" }).click();
         await sleep(800);
         await shot(viewer, "6-recordings");
         await viewer.context().close();

@@ -12,6 +12,8 @@ export interface Settings {
   appearance: Appearance;
   /** Liquid Glass (Apple) or Material You (Android/web); auto picks by platform. */
   design: DesignChoice;
+  /** Material You seed: "system" (Android wallpaper when available), or a #rrggbb colour. */
+  seedColor: string;
 }
 
 const KEY = "peersitter:settings";
@@ -23,6 +25,7 @@ const DEFAULTS: Settings = {
   cameraName: "",
   appearance: "auto",
   design: "auto",
+  seedColor: "system",
 };
 
 export function loadSettings(): Settings {

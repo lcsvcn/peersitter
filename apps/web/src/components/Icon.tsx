@@ -311,3 +311,26 @@ export function CopyIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** SF Symbols "house" lookalike. */
+export function HouseIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M3.5 11.2 12 4l8.5 7.2" />
+      <path d="M5.5 9.8V19a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.8" />
+      <path d="M10 20v-5.5h4V20" />
+    </svg>
+  );
+}
+
+/** "square.grid.2x2" lookalike. */
+export function GridIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="4" y="4" width="7" height="7" rx="1.6" />
+      <rect x="13" y="4" width="7" height="7" rx="1.6" />
+      <rect x="4" y="13" width="7" height="7" rx="1.6" />
+      <rect x="13" y="13" width="7" height="7" rx="1.6" />
+    </svg>
+  );
+}

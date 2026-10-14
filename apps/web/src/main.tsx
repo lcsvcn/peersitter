@@ -7,7 +7,7 @@ import { applyTheme } from "./theme";
 
 // Set theme before first paint so there is no flash of the wrong palette.
 const initial = loadSettings();
-applyTheme(initial.appearance, initial.design);
+applyTheme(initial.appearance, initial.design, initial.seedColor);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

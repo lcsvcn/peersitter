@@ -3,11 +3,10 @@ import { ClipStorage } from "@peersitter/core";
 import Home from "./pages/Home";
 import Camera from "./pages/Camera";
 import Viewer from "./pages/Viewer";
-import Gallery from "./pages/Gallery";
 import { applyTheme, watchSystemTheme } from "./theme";
 import { loadSettings, saveSettings, gbToBytes, type Settings } from "./settings";
 
-export type Screen = "home" | "camera" | "viewer" | "gallery";
+export type Screen = "home" | "camera" | "viewer";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -17,9 +16,9 @@ export default function App() {
   storage.setMaxBytes(gbToBytes(settings.maxStorageGB));
 
   useEffect(() => {
-    applyTheme(settings.appearance, settings.design);
-    return watchSystemTheme(() => applyTheme(settings.appearance, settings.design));
-  }, [settings.appearance, settings.design]);
+    applyTheme(settings.appearance, settings.design, settings.seedColor);
+    return watchSystemTheme(() => applyTheme(settings.appearance, settings.design, settings.seedColor));
+  }, [settings.appearance, settings.design, settings.seedColor]);
 
   function updateSettings(patch: Partial<Settings>) {
     const next = { ...settings, ...patch };
@@ -47,16 +46,13 @@ export default function App() {
       />
     );
   }
-  if (screen === "gallery") {
-    return <Gallery storage={storage} onBack={() => setScreen("home")} />;
-  }
   return (
     <Home
       settings={settings}
+      storage={storage}
       onSettingsChange={updateSettings}
       onChooseCamera={() => setScreen("camera")}
       onChooseViewer={() => setScreen("viewer")}
-      onChooseGallery={() => setScreen("gallery")}
     />
   );
 }

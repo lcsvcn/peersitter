@@ -13,6 +13,7 @@
     "test:e2e:agentic": "e2e run"
   },
   "dependencies": {
+    "@material/material-color-utilities": "^0.4.0",
     "@peersitter/core": "*",
     "jsqr": "^1.4.0",
     "qrcode": "^1.5.4",

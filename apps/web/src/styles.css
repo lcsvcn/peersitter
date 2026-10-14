@@ -1204,3 +1204,306 @@ button {
     padding-top: var(--space-6);
   }
 }
+
+/* =====================================================================
+   Home shell: navigation + panes
+   ---------------------------------------------------------------------
+   Wide windows (Mac, tablets, desktop web) get a sidebar — the macOS /
+   Material "navigation drawer" pattern. Phones get a bottom bar — the iOS
+   tab bar / Material navigation bar. Same buttons, same order, always
+   labelled, current section marked with aria-current.
+   ===================================================================== */
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 232px;
+  flex: none;
+  padding: calc(var(--space-5) + var(--safe-top)) var(--space-3) var(--space-4) calc(var(--space-3) + var(--safe-left));
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--surface);
+  border-right: 1px solid var(--outline-soft);
+}
+
+[data-design="glass"] .nav {
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+.nav-brand-name {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-mark.small {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-inner);
+  background: transparent;
+  color: var(--text);
+  font-weight: 550;
+  text-align: left;
+  transition: background 0.2s var(--ease);
+}
+
+.nav-item:hover {
+  background: var(--surface-hover);
+}
+
+.nav-item[aria-current="page"] {
+  background: var(--accent-container);
+  color: var(--on-accent-container);
+  font-weight: 700;
+}
+
+.nav-icon {
+  display: grid;
+  place-items: center;
+}
+
+.nav-footer {
+  margin-top: auto;
+  padding: 0 var(--space-3);
+  color: var(--text-2);
+  font-size: 0.8125rem;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: calc(var(--space-5) + var(--safe-top)) calc(var(--space-5) + var(--safe-right))
+    calc(var(--space-6) + var(--safe-bottom)) var(--space-5);
+}
+
+.pane-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.pane-title {
+  font-size: var(--title-size);
+  font-weight: var(--title-weight);
+  letter-spacing: var(--title-tracking);
+  line-height: 1.15;
+}
+
+.group-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.pane-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.pane-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+/* Start pane: primary actions look and read as buttons, with a visible verb. */
+.role-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .role-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.card.action {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.card.action .card-body {
+  flex-basis: calc(100% - 52px - var(--space-4));
+}
+
+.cta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-btn);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+.card.action:hover .cta {
+  filter: brightness(1.08);
+}
+
+.hero {
+  padding-top: 0;
+}
+
+/* Material You colour swatches */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.swatch {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--outline-soft);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch[aria-checked="true"] {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.swatch.system {
+  width: auto;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-btn);
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.swatch-picker {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--outline-soft);
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+/* Phones: sidebar becomes a bottom bar. */
+@media (max-width: 719px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .nav {
+    order: 2;
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 20;
+    width: auto;
+    height: auto;
+    flex-direction: row;
+    padding: var(--space-2) var(--space-2) calc(var(--space-2) + var(--safe-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--outline-soft);
+  }
+
+  [data-design="glass"] .nav {
+    border-right: 0;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .nav-brand,
+  .nav-footer {
+    display: none;
+  }
+
+  .nav-items {
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .nav-item {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--space-2) var(--space-1);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .content {
+    padding: calc(var(--space-4) + var(--safe-top)) var(--space-4) calc(96px + var(--safe-bottom));
+  }
+}
+
+/* Desktop shell with native window vibrancy: let the translucent window show through. */
+html[data-native-glass="true"] body {
+  background-color: transparent;
+}
+
+html[data-native-glass="true"] body::before {
+  opacity: 0.35;
+}
+
+html[data-native-glass="true"] .nav {
+  background: transparent;
+}
+
+/* Overlay title bar (desktop shell): reserve room for the traffic lights. */
+#drag-strip {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 28px;
+  z-index: 100;
+}
+
+html[data-desktop="true"] #root {
+  padding-top: 28px;
+}
+
+html[data-desktop="true"] .nav {
+  top: 28px;
+  height: calc(100vh - 28px);
+  padding-top: var(--space-4);
+}

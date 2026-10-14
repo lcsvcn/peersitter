@@ -1,3 +1,5 @@
+import { applyDynamicColor, systemAccent, DEFAULT_SEED } from "./dynamicColor";
+
 export type Appearance = "auto" | "light" | "dark";
 export type DesignChoice = "auto" | "glass" | "material";
 export type Design = "glass" | "material";
@@ -33,7 +35,11 @@ const THEME_COLOR: Record<Design, Record<"light" | "dark", string>> = {
   material: { light: "#f4fbfa", dark: "#0e1415" },
 };
 
-export function applyTheme(appearance: Appearance, designChoice: DesignChoice) {
+/**
+ * @param seed  Material You seed colour: "system" follows the Android wallpaper
+ *              accent when available, "" uses the stock palette, or a #rrggbb.
+ */
+export function applyTheme(appearance: Appearance, designChoice: DesignChoice, seed = "system") {
   const root = document.documentElement;
   const dark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   const theme = resolveTheme(appearance, dark);
@@ -41,6 +47,13 @@ export function applyTheme(appearance: Appearance, designChoice: DesignChoice) {
   root.dataset.theme = theme;
   root.dataset.design = design;
   root.style.colorScheme = theme;
+  const resolvedSeed = seed === "system" ? (systemAccent() ?? DEFAULT_SEED) : seed || undefined;
+  applyDynamicColor(root, design === "material" ? resolvedSeed : undefined, theme);
+  // Inside the macOS desktop shell the window itself is translucent
+  // (native vibrancy), so let the glass sample the desktop instead of a flat fill.
+  root.dataset.nativeGlass = design === "glass" && isTauri() ? "true" : "false";
+  root.dataset.desktop = isTauri() ? "true" : "false";
+  if (isTauri()) ensureDragStrip();
   let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (!meta) {
     meta = document.createElement("meta");
@@ -48,6 +61,17 @@ export function applyTheme(appearance: Appearance, designChoice: DesignChoice) {
     document.head.appendChild(meta);
   }
   meta.content = THEME_COLOR[design][theme];
+}
+
+const isTauri = () => "__TAURI__" in window;
+
+/** The desktop window has an overlay title bar, so give it a draggable strip under the traffic lights. */
+function ensureDragStrip() {
+  if (document.getElementById("drag-strip")) return;
+  const strip = document.createElement("div");
+  strip.id = "drag-strip";
+  strip.setAttribute("data-tauri-drag-region", "");
+  document.body.appendChild(strip);
 }
 
 /** Re-applies the theme when the OS switches between light and dark (only matters in "auto"). */
