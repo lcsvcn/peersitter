@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Download PeerSitter</title>
+  <meta name="description" content="Download PeerSitter — open-source, peer-to-peer camera monitoring for macOS, Windows, Linux, Android and iOS. No cloud, no account, no cost." />
+  <link rel="icon" href="icon.png" />
+  <meta property="og:title" content="Download PeerSitter" />
+  <meta property="og:description" content="Turn a spare device into an end-to-end encrypted security camera. No cloud, no account, no cost." />
+  <meta property="og:image" content="icon.png" />
+  <style>
+    :root {
+      --font: "Google Sans", Roboto, "Segoe UI", system-ui, -apple-system, sans-serif;
+      --bg: #f4fbfa;
+      --surface: #ffffff;
+      --surface-2: #eaf2f1;
+      --outline-soft: #d3dddc;
+      --text: #171d1d;
+      --muted: #4f5a5a;
+      --accent: #00696b;
+      --accent-strong: #004f50;
+      --on-accent: #ffffff;
+      --accent-container: #9cf1f0;
+      --on-accent-container: #002020;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,40,40,.07);
+      --radius: 20px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0e1415;
+        --surface: #161d1e;
+        --surface-2: #1d2526;
+        --outline-soft: #2c3637;
+        --text: #dde4e3;
+        --muted: #a3b0af;
+        --accent: #80d4d4;
+        --accent-strong: #9cf1f0;
+        --on-accent: #003738;
+        --accent-container: #004f50;
+        --on-accent-container: #9cf1f0;
+        --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0e1415; --surface: #161d1e; --surface-2: #1d2526; --outline-soft: #2c3637;
+      --text: #dde4e3; --muted: #a3b0af; --accent: #80d4d4; --accent-strong: #9cf1f0;
+      --on-accent: #003738; --accent-container: #004f50; --on-accent-container: #9cf1f0;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; font-family: var(--font); background: var(--bg); color: var(--text);
+      line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+    /* Nav */
+    header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
+      border-bottom: 1px solid color-mix(in srgb, var(--outline-soft) 60%, transparent); }
+    nav { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 1.05rem; }
+    .brand img { width: 30px; height: 30px; border-radius: 8px; }
+    .links { display: flex; align-items: center; gap: 22px; font-size: .95rem; }
+    .links a { text-decoration: none; color: var(--muted); }
+    .links a:hover { color: var(--text); }
+    .pill { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 999px;
+      font-weight: 600; transition: transform .15s ease, background .15s ease; }
+    .pill-sm { padding: 8px 16px; background: var(--text); color: var(--bg) !important; font-size: .9rem; }
+    @media (max-width: 640px) { .links a.hide-sm { display: none; } }
+
+    /* Hero */
+    .hero { text-align: center; padding: 88px 0 56px; }
+    .hero .icon { width: 104px; height: 104px; border-radius: 24px; box-shadow: var(--shadow); }
+    h1 { font-size: clamp(2rem, 5.2vw, 3.4rem); line-height: 1.08; letter-spacing: -.02em; font-weight: 600;
+      margin: 28px auto 14px; max-width: 760px; }
+    h1 span { color: var(--muted); }
+    .lede { color: var(--muted); font-size: 1.12rem; max-width: 560px; margin: 0 auto 34px; }
+    .pill-lg { padding: 16px 30px; font-size: 1.08rem; background: var(--accent); color: var(--on-accent); }
+    .pill-lg:hover { transform: translateY(-1px); background: var(--accent-strong); }
+    .pill-lg svg { width: 20px; height: 20px; }
+    .meta { margin-top: 14px; font-size: .88rem; color: var(--muted); }
+    .meta b { font-weight: 600; color: var(--text); }
+    .other { margin-top: 10px; font-size: .9rem; }
+    .other a { color: var(--accent); }
+
+    /* Platform grid */
+    section { padding: 40px 0; }
+    h2 { font-size: 1.6rem; letter-spacing: -.01em; font-weight: 600; margin: 0 0 6px; }
+    .sub { color: var(--muted); margin: 0 0 26px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--outline-soft); border-radius: var(--radius);
+      padding: 20px; display: flex; flex-direction: column; gap: 6px; text-decoration: none;
+      transition: border-color .15s ease, transform .15s ease; }
+    a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .card .os { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; }
+    .card .os svg { width: 22px; height: 22px; flex: none; }
+    .card .req { color: var(--muted); font-size: .88rem; }
+    .card .fmt { margin-top: auto; padding-top: 10px; font-size: .85rem; color: var(--accent); font-weight: 600; }
+    .tag { font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px;
+      border-radius: 999px; background: var(--accent-container); color: var(--on-accent-container); margin-left: auto; }
+
+    /* Steps */
+    .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 999px; margin-bottom: 22px; flex-wrap: wrap; }
+    .tabs button { font: inherit; font-size: .9rem; font-weight: 600; border: 0; background: transparent; color: var(--muted);
+      padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; counter-reset: step; }
+    @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+    .step { background: var(--surface); border: 1px solid var(--outline-soft); border-radius: var(--radius); overflow: hidden; }
+    .step .art { aspect-ratio: 16 / 10; background: var(--surface-2); display: grid; place-items: center; }
+    .step .art svg { width: 62%; height: auto; }
+    .step .body { padding: 18px 20px 20px; }
+    .step .n { counter-increment: step; font-size: .8rem; font-weight: 700; color: var(--accent); }
+    .step .n::before { content: "Step " counter(step); }
+    .step h3 { margin: 4px 0 4px; font-size: 1.05rem; font-weight: 600; }
+    .step p { margin: 0; color: var(--muted); font-size: .93rem; }
+    .note { margin-top: 16px; font-size: .88rem; color: var(--muted); background: var(--surface-2); border-radius: 14px; padding: 12px 16px; }
+    .note code { font-size: .85em; background: var(--surface); padding: 1px 6px; border-radius: 6px; }
+
+    /* Pair */
+    .pair { background: var(--accent-container); color: var(--on-accent-container); border-radius: 28px; padding: 40px;
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; align-items: center; }
+    .pair h2 { color: inherit; }
+    .pair p { margin: 0 0 10px; opacity: .85; }
+    .pair ol { margin: 0; padding-left: 20px; }
+    .pair li { margin: 6px 0; }
+    @media (max-width: 760px) { .pair { grid-template-columns: 1fr; padding: 28px 22px; } }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--outline-soft); margin-top: 48px; padding: 40px 0 56px; font-size: .9rem; color: var(--muted); }
+    .cols { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 24px; }
+    @media (max-width: 760px) { .cols { grid-template-columns: 1fr 1fr; } }
+    .cols h4 { margin: 0 0 10px; color: var(--text); font-size: .9rem; }
+    .cols a { display: block; text-decoration: none; margin: 6px 0; }
+    .cols a:hover { color: var(--text); }
+    .fine { margin-top: 32px; font-size: .82rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="wrap">
+      <a class="brand" href="#"><img src="icon.png" alt="" />PeerSitter</a>
+      <div class="links">
+        <a class="hide-sm" href="#platforms">Platforms</a>
+        <a class="hide-sm" href="#install">Install</a>
+        <a class="hide-sm" data-repo="/blob/main/docs/ARCHITECTURE.md" href="#">How it works</a>
+        <a data-repo="" href="#">GitHub</a>
+        <a class="pill pill-sm" href="#platforms">Download</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="hero">
+      <img class="icon" src="icon.png" alt="PeerSitter app icon" />
+      <h1>Turn a spare device into a private camera. <span>Download PeerSitter and pair in seconds.</span></h1>
+      <p class="lede">Open source and peer-to-peer. Video goes encrypted straight between your devices. No cloud, no account, no subscription.</p>
+      <a id="primary" class="pill pill-lg" href="#platforms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+        <span id="primary-label">Start Download</span>
+      </a>
+      <div class="meta" id="primary-meta">Free · MIT licensed</div>
+      <div class="other"><a href="#platforms">Other platforms</a></div>
+    </div>
+
+    <section id="platforms">
+      <h2>Every device can be a camera or a viewer</h2>
+      <p class="sub">Use any mix: an old Android phone as the camera, your Mac as the viewer, or the reverse.</p>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <section id="install">
+      <h2>Install in three steps</h2>
+      <p class="sub">Pick your platform.</p>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="steps" id="steps"></div>
+      <div class="note" id="note"></div>
+    </section>
+
+    <section>
+      <div class="pair">
+        <div>
+          <h2>Then pair your devices</h2>
+          <p>Pairing happens directly between your devices. The signaling relay only helps them find each other and never sees your video.</p>
+          <ol>
+            <li>On the device watching the room, choose <b>Be a Camera</b>.</li>
+            <li>On your other device, choose <b>Be a Viewer</b>, then scan the QR code.</li>
+            <li>Check that the fingerprint matches on both screens, and you're live.</li>
+          </ol>
+        </div>
+        <svg viewBox="0 0 260 150" aria-hidden="true">
+          <rect x="10" y="20" width="70" height="115" rx="12" fill="none" stroke="currentColor" stroke-width="3"/>
+          <circle cx="45" cy="60" r="16" fill="none" stroke="currentColor" stroke-width="3"/>
+          <circle cx="45" cy="60" r="6" fill="currentColor"/>
+          <rect x="170" y="35" width="80" height="100" rx="12" fill="none" stroke="currentColor" stroke-width="3"/>
+          <rect x="182" y="48" width="56" height="40" rx="6" fill="currentColor" opacity=".25"/>
+          <path d="M92 78h66" stroke="currentColor" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"/>
+          <rect x="114" y="64" width="22" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path d="M118 64v-5a7 7 0 0 1 14 0v5" fill="none" stroke="currentColor" stroke-width="3"/>
+        </svg>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <a class="brand" href="#" style="margin:0 0 10px;color:var(--text)"><img src="icon.png" alt="" />PeerSitter</a>
+          An open-source, peer-to-peer alternative to cloud camera apps.
+        </div>
+        <div><h4>Product</h4>
+          <a href="#platforms">Download</a>
+          <a data-repo="/releases" href="#">Releases</a>
+          <a data-repo="#quickstart-web-two-browser-tabsdevices" href="#">Run in a browser</a>
+        </div>
+        <div><h4>Resources</h4>
+          <a data-repo="/blob/main/docs/ARCHITECTURE.md" href="#">Architecture</a>
+          <a data-repo="/tree/main/apps/homekit" href="#">HomeKit bridge</a>
+          <a data-repo="/issues" href="#">Report an issue</a>
+        </div>
+        <div><h4>Project</h4>
+          <a data-repo="" href="#">Source code</a>
+          <a data-repo="/blob/main/LICENSE" href="#">MIT License</a>
+        </div>
+      </div>
+      <div class="fine">© <span id="yr"></span> PeerSitter contributors.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Edit this block when cutting a release. Links point at GitHub Releases
+    // so the page never needs a redeploy just because a new build shipped.
+    const REPO = "https://github.com/lcsvcn/peersitter";
+    const LATEST = REPO + "/releases/latest";
+
+    const ICONS = {
+      apple: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.7 1.3-2.8 0 0-2.5-1-2.4-4zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>',
+      windows: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.4 4.5v7H3zm0 13 7.4 1v-7H3zm8.4 1.1L21 21v-8.5h-9.6zm0-15.2v7.1H21V3z"/></svg>',
+      linux: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m7 9 3 2.5L7 14M12 14h5M8 21h8"/></svg>',
+      android: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.5 19.4 6.4a.4.4 0 0 0-.7-.4l-1.8 3.1A11 11 0 0 0 12 8c-1.8 0-3.4.4-4.9 1.1L5.3 6a.4.4 0 0 0-.7.4l1.8 3.1C3.6 11 1.6 13.9 1.4 17.3h21.2c-.2-3.4-2.2-6.3-5-7.8zM7 14.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>',
+      web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>'
+    };
+
+    const PLATFORMS = [
+      { id: "mac", name: "macOS", icon: "apple", req: "macOS 10.15+ · Apple silicon & Intel", fmt: ".dmg", href: LATEST,
+        note: "Includes the HomeKit bridge, so your Mac shows up as a camera in the Apple Home app." },
+      { id: "win", name: "Windows", icon: "windows", req: "Windows 10 or 11 · 64-bit", fmt: ".msi / .exe", href: LATEST },
+      { id: "linux", name: "Linux", icon: "linux", req: "x86_64 · most distros", fmt: ".AppImage / .deb", href: LATEST },
+      { id: "android", name: "Android", icon: "android", req: "Android 6.0+", fmt: ".apk", href: LATEST },
+      { id: "ios", name: "iPhone & iPad", icon: "apple", req: "iOS 15+", fmt: "Build from source", href: REPO + "/tree/main/apps/mobile", soon: true },
+      { id: "web", name: "Web browser", icon: "web", req: "Chrome, Safari, Firefox, Edge", fmt: "Self-host", href: REPO + "#quickstart-web-two-browser-tabsdevices" }
+    ];
+
+    const ART = {
+      file: '<svg viewBox="0 0 160 100"><rect x="50" y="10" width="60" height="80" rx="10" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><path d="M80 32v26m0 0-9-9m9 9 9-9" stroke="var(--accent)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="62" y="68" width="36" height="6" rx="3" fill="var(--outline-soft)"/></svg>',
+      drag: '<svg viewBox="0 0 160 100"><rect x="14" y="30" width="44" height="44" rx="11" fill="var(--accent)"/><circle cx="36" cy="52" r="9" fill="none" stroke="var(--on-accent)" stroke-width="3"/><path d="M68 52h30m0 0-8-8m8 8-8 8" stroke="var(--muted)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M108 34h12l5 6h21v34a4 4 0 0 1-4 4h-34a4 4 0 0 1-4-4V38a4 4 0 0 1 4-4z" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><path d="M118 62l9-16 9 16z" fill="var(--outline-soft)"/></svg>',
+      launch: '<svg viewBox="0 0 160 100"><rect x="20" y="14" width="120" height="72" rx="10" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><rect x="58" y="30" width="44" height="40" rx="11" fill="var(--accent)"/><circle cx="80" cy="50" r="9" fill="none" stroke="var(--on-accent)" stroke-width="3"/><circle cx="80" cy="50" r="3" fill="var(--on-accent)"/></svg>',
+      phone: '<svg viewBox="0 0 160 100"><rect x="58" y="8" width="44" height="84" rx="10" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><path d="M80 30v24m0 0-8-8m8 8 8-8" stroke="var(--accent)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="70" y="64" width="20" height="5" rx="2.5" fill="var(--outline-soft)"/></svg>',
+      shield: '<svg viewBox="0 0 160 100"><rect x="58" y="8" width="44" height="84" rx="10" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><path d="M80 28l14 5v10c0 9-6 15-14 18-8-3-14-9-14-18V33z" fill="var(--accent)"/><path d="m74 45 4 4 8-8" stroke="var(--on-accent)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      appicon: '<svg viewBox="0 0 160 100"><rect x="58" y="8" width="44" height="84" rx="10" fill="var(--surface)" stroke="var(--outline-soft)" stroke-width="2"/><rect x="68" y="36" width="24" height="24" rx="6" fill="var(--accent)"/><circle cx="80" cy="48" r="5" fill="none" stroke="var(--on-accent)" stroke-width="2.5"/></svg>'
+    };
+
+    const STEPS = {
+      mac: {
+        steps: [
+          ["file", "Open the download", "Open the PeerSitter .dmg from your Downloads folder."],
+          ["drag", "Drag to Applications", "Drag PeerSitter onto the Applications folder."],
+          ["launch", "Launch PeerSitter", "Open it from Applications or Spotlight, then pick Camera or Viewer."]
+        ],
+        note: "If macOS says the app can't be checked for malicious software, Control-click PeerSitter in Applications and choose <b>Open</b>. You only need to do this once."
+      },
+      win: {
+        steps: [
+          ["file", "Run the installer", "Open the PeerSitter .msi or .exe from your Downloads folder."],
+          ["drag", "Follow the prompts", "Accept the defaults. The installer adds PeerSitter to the Start menu."],
+          ["launch", "Launch PeerSitter", "Open it from the Start menu and allow camera access when Windows asks."]
+        ],
+        note: "If SmartScreen shows a warning, click <b>More info</b> and then <b>Run anyway</b>. That's expected for new open-source builds."
+      },
+      linux: {
+        steps: [
+          ["file", "Download a package", "Get the .AppImage (runs anywhere) or .deb (Debian/Ubuntu)."],
+          ["drag", "Make it runnable", "For AppImage, run <code>chmod +x PeerSitter*.AppImage</code>. For .deb, run <code>sudo apt install ./PeerSitter*.deb</code>."],
+          ["launch", "Launch PeerSitter", "Start it from your app launcher or double-click the AppImage."]
+        ],
+        note: "Requires WebKitGTK 4.1, which is preinstalled on most modern desktops."
+      },
+      android: {
+        steps: [
+          ["phone", "Download the APK", "Open this page on your Android phone and tap the Android download."],
+          ["shield", "Allow the install", "When prompted, allow your browser to install unknown apps."],
+          ["appicon", "Open PeerSitter", "Tap the app icon and grant camera permission when asked."]
+        ],
+        note: "Got an old phone in a drawer? Android 6.0 and newer is supported, which makes it a great dedicated camera."
+      }
+    };
+
+    const ua = navigator.userAgent;
+    const detected =
+      /android/i.test(ua) ? "android" :
+      /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "ios" :
+      /Mac/i.test(ua) ? "mac" :
+      /Win/i.test(ua) ? "win" :
+      /Linux|X11/i.test(ua) ? "linux" : null;
+
+    // Repo links
+    document.querySelectorAll("[data-repo]").forEach(a => { a.href = REPO + a.dataset.repo; a.target = "_blank"; a.rel = "noopener"; });
+    document.getElementById("yr").textContent = new Date().getFullYear();
+
+    // Hero button
+    const p = PLATFORMS.find(x => x.id === detected);
+    if (p && !p.soon) {
+      const btn = document.getElementById("primary");
+      btn.href = p.href;
+      document.getElementById("primary-label").textContent = "Download for " + p.name;
+      document.getElementById("primary-meta").innerHTML = "<b>" + p.fmt + "</b> · " + p.req + " · Free";
+    } else if (p && p.soon) {
+      document.getElementById("primary-meta").textContent = "There's no iOS build to download yet. Build it from source, or use your phone as a Viewer in Safari.";
+    }
+
+    // Platform grid
+    document.getElementById("grid").innerHTML = PLATFORMS.map(x => `
+      <a class="card${x.id === detected ? " current" : ""}" href="${x.href}" ${x.href.startsWith("http") ? 'target="_blank" rel="noopener"' : ""}>
+        <div class="os">${ICONS[x.icon]}${x.name}${x.id === detected ? '<span class="tag">Your device</span>' : ""}</div>
+        <div class="req">${x.req}</div>
+        ${x.note ? `<div class="req">${x.note}</div>` : ""}
+        <div class="fmt">${x.fmt} →</div>
+      </a>`).join("");
+
+    // Install tabs
+    const tabs = document.getElementById("tabs");
+    const order = ["mac", "win", "linux", "android"];
+    const names = { mac: "macOS", win: "Windows", linux: "Linux", android: "Android" };
+    function show(id) {
+      tabs.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.id === id));
+      const s = STEPS[id];
+      document.getElementById("steps").innerHTML = s.steps.map(([art, t, d]) =>
+        `<div class="step"><div class="art">${ART[art]}</div><div class="body"><div class="n"></div><h3>${t}</h3><p>${d}</p></div></div>`).join("");
+      document.getElementById("note").innerHTML = s.note;
+      try { localStorage.setItem("ps-tab", id); } catch (e) {}
+    }
+    tabs.innerHTML = order.map(id => `<button role="tab" data-id="${id}">${names[id]}</button>`).join("");
+    tabs.addEventListener("click", e => { const b = e.target.closest("button"); if (b) show(b.dataset.id); });
+    let saved = null; try { saved = localStorage.getItem("ps-tab"); } catch (e) {}
+    show(order.includes(detected) ? detected : (order.includes(saved) ? saved : "mac"));
+  </script>
+</body>
+</html>
