@@ -194,3 +194,12 @@ MIT — see [`LICENSE`](LICENSE).
 
 - [Privacy Policy](https://lcsvcn.github.io/peersitter/privacy.html)
 - [Terms of Use](https://lcsvcn.github.io/peersitter/terms.html)
+
+## Install as an app (PWA, no store)
+
+Host `apps/web/dist` over **HTTPS** (camera access requires it), then:
+- **iPhone/iPad (Safari):** Share → *Add to Home Screen*.
+- **Android (Chrome):** menu → *Install app* / *Add to Home screen*.
+- **Desktop Chrome/Edge:** install icon in the address bar.
+
+The app shell works offline; video still needs the signaling server. iOS PWAs are limited versus the native app (no background camera, no Apple Home).
