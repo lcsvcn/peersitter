@@ -14,3 +14,11 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StrictMode>,
 );
+
+// Installable PWA: offline app shell for browsers. Native shells bundle their own assets.
+const w = window as unknown as { Capacitor?: unknown; __TAURI__?: unknown };
+if (import.meta.env.PROD && "serviceWorker" in navigator && !w.Capacitor && !w.__TAURI__) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
