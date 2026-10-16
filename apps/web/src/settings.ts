@@ -16,6 +16,8 @@ export interface Settings {
   seedColor: string;
   /** Extra STUN/TURN servers, one per line (see parseIceServers). */
   iceServers: string;
+  /** Camera: list this camera to viewers on the same network ("Cameras on your network"). */
+  discoverable: boolean;
 }
 
 const KEY = "peersitter:settings";
@@ -29,6 +31,7 @@ const DEFAULTS: Settings = {
   design: "auto",
   seedColor: "system",
   iceServers: "",
+  discoverable: true,
 };
 
 export function loadSettings(): Settings {

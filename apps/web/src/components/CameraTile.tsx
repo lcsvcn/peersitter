@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { loadSettings } from "../settings";
 import { SignalingClient, PeerLink, parseIceServers, type ClipStorage, type PairingPayload } from "@peersitter/core";
 import { useMotionRecording } from "../hooks/useMotionRecording";
-import { ExpandIcon, ShrinkIcon, XIcon } from "./Icon";
+import { ExpandIcon, LockIcon, ShieldCheckIcon, ShrinkIcon, XIcon } from "./Icon";
 
 export type TileStatus = "connecting" | "verifying" | "connected" | "fingerprint-mismatch" | "offline" | "error";
 
@@ -31,6 +31,10 @@ export default function CameraTile({
   const [error, setError] = useState<string | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [motionEnabled, setMotionEnabled] = useState(true);
+  // Cameras added by QR are verified by construction; code/nearby ones need a safety-number check.
+  const [safety, setSafety] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const { isRecording } = useMotionRecording(
     remoteStream,
@@ -81,6 +85,7 @@ export default function CameraTile({
                 const verified = peer.verifyFingerprint(payload.fingerprint);
                 setStatus(verified ? "connected" : "fingerprint-mismatch");
                 if (!verified) peer.close();
+                else if (payload.unverified) void peer.safetyNumber().then((n) => !closed && setSafety(n));
               } else if (state === "failed" || state === "closed") {
                 setStatus((s) => (s === "connected" || s === "verifying" ? "offline" : s));
               }
@@ -133,6 +138,47 @@ export default function CameraTile({
       <p className="status pill" data-state={status}>
         Status: <strong>{status}</strong>
       </p>
+
+      {status === "connected" && (
+        <div className="trust-row" data-testid="trust">
+          {!payload.unverified || confirmed ? (
+            <span className="trust-badge ok">
+              <ShieldCheckIcon size={14} /> {payload.unverified ? "Verified" : "Verified by QR"}
+            </span>
+          ) : (
+            <>
+              <span className="trust-badge">
+                <LockIcon size={14} /> Paired by code — not verified
+              </span>
+              {!checking && safety && (
+                <button className="btn tonal small" onClick={() => setChecking(true)}>
+                  Verify
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {status === "connected" && payload.unverified && !confirmed && checking && safety && (
+        <div className="code-card" data-testid="verify-panel">
+          <span className="eyebrow">Safety number</span>
+          <div className="code-display" data-testid="safety-number">
+            {safety}
+          </div>
+          <p className="field-hint">
+            It must be exactly the same on the camera (Camera screen → Security). If it differs, someone may be
+            intercepting the connection.
+          </p>
+          <div className="trust-row">
+            <button className="btn small" onClick={() => setConfirmed(true)}>
+              It matches
+            </button>
+            <button className="btn danger small" onClick={onRemove}>
+              It doesn't match
+            </button>
+          </div>
+        </div>
+      )}
 
       {status === "fingerprint-mismatch" && (
         <p className="error">

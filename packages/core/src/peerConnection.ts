@@ -1,5 +1,5 @@
 import type { SignalChannel } from "./signalingClient";
-import { fingerprintFromSdp } from "./pairing";
+import { fingerprintFromSdp, safetyNumber } from "./pairing";
 import type { ConnectionEvents } from "./types";
 
 export interface IceServerConfig {
@@ -113,6 +113,13 @@ export class PeerLink {
     const verified = actual === expected.toLowerCase();
     this.events.onFingerprintCheck?.(verified, actual ?? "", expected);
     return verified;
+  }
+
+  /** Safety number for this link (null until both descriptions exist). Both ends compute the same value. */
+  async safetyNumber(): Promise<string | null> {
+    const local = this.pc.localDescription?.sdp && fingerprintFromSdp(this.pc.localDescription.sdp);
+    const remote = this.pc.remoteDescription?.sdp && fingerprintFromSdp(this.pc.remoteDescription.sdp);
+    return local && remote ? safetyNumber(local, remote) : null;
   }
 
   close() {

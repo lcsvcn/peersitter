@@ -40,6 +40,7 @@ export default function App() {
   if (screen === "viewer") {
     return (
       <Viewer
+        signalingUrl={settings.signalingUrl}
         storage={storage}
         motionSensitivity={settings.motionSensitivity}
         onBack={() => setScreen("home")}

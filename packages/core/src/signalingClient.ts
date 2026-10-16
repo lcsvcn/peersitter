@@ -1,3 +1,23 @@
+export interface CreateRoomOptions {
+  /** Shown to viewers (code lookup and the nearby list). */
+  name?: string;
+  /** The camera's DTLS fingerprint, handed to viewers who pair by code. */
+  fingerprint?: string;
+  /** List this camera to viewers on the same network. */
+  discoverable?: boolean;
+}
+
+export interface NearbyCamera {
+  code: string;
+  name: string;
+}
+
+export interface ResolvedCode {
+  roomId: string;
+  fingerprint: string;
+  name: string;
+}
+
 /** One logical signaling conversation: either the whole socket (viewer side) or one viewer as seen by a camera. */
 export interface SignalChannel {
   sendSignal(data: unknown): Promise<void>;
@@ -21,6 +41,8 @@ export class SignalingClient implements SignalChannel {
   onError?: (message: string) => void;
   /** The socket to the relay closed (server restart, network loss). */
   onClose?: () => void;
+  /** Viewer side: cameras on this network changed (sent right after watchNearby and on every change). */
+  onNearby?: (cameras: NearbyCamera[]) => void;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
@@ -43,6 +65,9 @@ export class SignalingClient implements SignalChannel {
           if (msg.from && this.channels.has(msg.from)) this.channels.get(msg.from)!.onSignal?.(msg.data);
           else this.onSignal?.(msg.data);
           break;
+        case "nearby":
+          this.onNearby?.(msg.cameras ?? []);
+          break;
         case "error":
           this.onError?.(msg.message);
           break;
@@ -55,19 +80,52 @@ export class SignalingClient implements SignalChannel {
     this.ws.send(JSON.stringify(msg));
   }
 
-  /** Camera side: ask the relay to mint a fresh, random room id. */
-  async createRoom(): Promise<string> {
-    await this.send({ type: "create-room" });
+  /** Camera side: ask the relay for a fresh room; also returns the short code viewers can type. */
+  async createRoomWithCode(opts: CreateRoomOptions = {}): Promise<{ roomId: string; code: string }> {
+    await this.send({ type: "create-room", ...opts });
     return new Promise((resolve) => {
       const handler = (ev: MessageEvent) => {
         const msg = JSON.parse(ev.data);
         if (msg.type === "room-created") {
           this.ws.removeEventListener("message", handler);
-          resolve(msg.roomId);
+          resolve({ roomId: msg.roomId, code: msg.code ?? "" });
         }
       };
       this.ws.addEventListener("message", handler);
     });
+  }
+
+  /** Camera side: ask the relay to mint a fresh, random room id. */
+  async createRoom(opts?: CreateRoomOptions): Promise<string> {
+    return (await this.createRoomWithCode(opts)).roomId;
+  }
+
+  /** Camera side: change what the relay advertises (e.g. stop being listed on the network). */
+  async updateRoom(patch: { discoverable?: boolean; name?: string }) {
+    await this.send({ type: "update-room", ...patch });
+  }
+
+  /** Viewer side: turn a typed short code into the room to join. Rejects with the relay's reason ("code-not-found", "rate-limited"). */
+  async resolveCode(code: string): Promise<ResolvedCode> {
+    await this.send({ type: "resolve-code", code });
+    return new Promise((resolve, reject) => {
+      const handler = (ev: MessageEvent) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.type === "code-resolved") {
+          this.ws.removeEventListener("message", handler);
+          resolve({ roomId: msg.roomId, fingerprint: msg.fingerprint ?? "", name: msg.name ?? "" });
+        } else if (msg.type === "error" && (msg.message === "code-not-found" || msg.message === "rate-limited")) {
+          this.ws.removeEventListener("message", handler);
+          reject(new Error(msg.message));
+        }
+      };
+      this.ws.addEventListener("message", handler);
+    });
+  }
+
+  /** Viewer side: ask for the cameras on this network and keep getting updates through onNearby. */
+  async watchNearby() {
+    await this.send({ type: "list-nearby" });
   }
 
   /** Viewer side: join the room id scanned from the Camera's QR code. */

@@ -17,6 +17,13 @@ export interface PairingPayload {
   fingerprint: string;
   /** Optional human-friendly camera name ("Nursery") shown on the viewer's tile. */
   name?: string;
+  /**
+   * Set when the Viewer got the fingerprint from the signaling relay (short
+   * code / nearby list) instead of scanning it off the Camera's screen. The
+   * relay is untrusted, so such a connection is only as trustworthy as the
+   * safety number the two people compare (see safetyNumber in pairing.ts).
+   */
+  unverified?: boolean;
 }
 
 export type Role = "camera" | "viewer";
